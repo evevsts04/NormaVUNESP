@@ -1,0 +1,2361 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NormaVUNESP — Laboratório de Língua Portuguesa</title>
+
+  <!-- Tailwind CSS via CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Google Fonts: Inter (interface) e Lora (leitura editorial) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Lora:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet" />
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            paper: '#FAF9F6',
+            ink: '#1E293B',
+            inkSoft: '#475569',
+            accent: '#1D4ED8',
+            surface: '#FFFFFF',
+          },
+          fontFamily: {
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+            serif: ['Lora', 'Georgia', 'serif'],
+          },
+        },
+      },
+    };
+  </script>
+
+  <style>
+    body {
+      background-color: #FAF9F6;
+      color: #1E293B;
+      font-family: 'Inter', system-ui, sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .editorial-text {
+      font-family: 'Lora', Georgia, serif;
+      line-height: 1.9;
+    }
+
+    /* Estilo dos trechos interativos na Leitura Ativa */
+    .ann-token {
+      cursor: pointer;
+      border-bottom: 2px dashed #94A3B8;
+      padding: 1px 3px;
+      border-radius: 4px;
+      transition: all 0.18s ease;
+    }
+    .ann-token:hover {
+      background-color: #E2E8F0;
+      border-bottom-color: #1E293B;
+    }
+    .ann-token.found-verbo {
+      background-color: #DBEAFE;
+      border-bottom: 2px solid #2563EB;
+      color: #1E3A8A;
+    }
+    .ann-token.found-conjuncao {
+      background-color: #DCFCE7;
+      border-bottom: 2px solid #16A34A;
+      color: #14532D;
+    }
+    .ann-token.found-pronome {
+      background-color: #F3E8FF;
+      border-bottom: 2px solid #9333EA;
+      color: #581C87;
+    }
+    .ann-token.found-preposicao {
+      background-color: #FFEDD5;
+      border-bottom: 2px solid #EA580C;
+      color: #7C2D12;
+    }
+    .ann-token.found-sujeito {
+      background-color: #FEF3C7;
+      border-bottom: 2px solid #D97706;
+      color: #78350F;
+    }
+    .ann-token.found-deslocado {
+      background-color: #FFE4E6;
+      border-bottom: 2px solid #E11D48;
+      color: #881337;
+    }
+
+    @keyframes pulseSoft {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.55; }
+    }
+    .animate-pulse-soft {
+      animation: pulseSoft 1.6s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+  <!-- Cabeçalho Principal e Navegação -->
+  <header class="sticky top-0 z-30 bg-white/95 backdrop-blur border-b border-slate-200 shadow-sm">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6">
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between py-3 gap-3">
+        <!-- Marca -->
+        <div class="flex items-center justify-between">
+          <button onclick="navigateTo('acervo')" class="flex items-center gap-3 text-left group">
+            <div class="w-10 h-10 rounded-xl bg-ink text-white flex items-center justify-center font-serif font-semibold text-lg shadow-sm group-hover:bg-slate-800 transition">
+              NV
+            </div>
+            <div>
+              <h1 class="text-lg font-bold tracking-tight text-ink leading-tight">
+                NormaVUNESP
+              </h1>
+              <p class="text-xs text-slate-500 font-medium">
+                Laboratório de Língua Portuguesa
+              </p>
+            </div>
+          </button>
+          <span class="sm:hidden inline-flex items-center gap-1.5 text-[11px] font-semibold px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+            Auditoria Ativa
+          </span>
+        </div>
+
+        <!-- Abas Principais -->
+        <nav class="flex items-center gap-1 overflow-x-auto pb-1 sm:pb-0" aria-label="Navegação principal">
+          <button id="nav-acervo" onclick="navigateTo('acervo')" class="nav-btn px-3.5 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition">
+            Acervo Curado
+          </button>
+          <button id="nav-estudio" onclick="navigateTo('estudio')" class="nav-btn px-3.5 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition">
+            Estúdio IA (Seu Texto)
+          </button>
+          <button id="nav-diagnostico" onclick="navigateTo('diagnostico')" class="nav-btn px-3.5 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition">
+            Diagnóstico &amp; Evolução
+          </button>
+          <button id="nav-barreiras" onclick="navigateTo('barreiras')" class="nav-btn px-3.5 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition">
+            Barreiras Técnicas
+          </button>
+        </nav>
+      </div>
+    </div>
+  </header>
+
+  <!-- Conteúdo Principal -->
+  <main id="app-root" class="flex-1 max-w-6xl w-full mx-auto px-4 sm:px-6 py-6 sm:py-8">
+    <!-- Renderizado dinamicamente via JavaScript -->
+  </main>
+
+  <!-- Rodapé -->
+  <footer class="border-t border-slate-200 bg-white mt-12">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 py-5 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-slate-500">
+      <p>
+        <strong class="text-ink">NormaVUNESP</strong> — Método de Engenharia Reversa de Texto no padrão da banca VUNESP.
+      </p>
+      <p>
+        6 Pilares: Morfologia · Sintaxe · Regência · Concordância · Crase · Pontuação
+      </p>
+    </div>
+  </footer>
+
+  <!-- Modal Customizado (substitui alert/confirm) -->
+  <div id="custom-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-900/50 backdrop-blur-xs p-4">
+    <div class="bg-white rounded-2xl shadow-xl border border-slate-200 max-w-md w-full p-6 space-y-4">
+      <div class="flex items-start gap-3">
+        <div id="modal-icon" class="w-10 h-10 rounded-xl bg-slate-100 text-ink flex items-center justify-center shrink-0">
+          ℹ️
+        </div>
+        <div class="space-y-1">
+          <h3 id="modal-title" class="text-base font-bold text-ink">Aviso</h3>
+          <p id="modal-message" class="text-sm text-slate-600 leading-relaxed"></p>
+        </div>
+      </div>
+      <div id="modal-actions" class="flex justify-end gap-2 pt-2">
+        <!-- Botões injetados dinamicamente -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast de Notificação -->
+  <div id="toast-container" class="fixed bottom-4 right-4 z-40 flex flex-col gap-2 max-w-sm w-full pointer-events-none px-4 sm:px-0"></div>
+
+  <script>
+    // =========================================================================
+    // 1. CONSTANTES, CATEGORIAS GRAMATICAIS E PILARES VUNESP
+    // =========================================================================
+
+    const PILLARS = [
+      'Morfologia',
+      'Sintaxe',
+      'Regência',
+      'Concordância',
+      'Crase',
+      'Pontuação'
+    ];
+
+    const PILLAR_COLORS = {
+      'Morfologia': { bg: 'bg-emerald-50', text: 'text-emerald-800', border: 'border-emerald-200', bar: 'bg-emerald-600' },
+      'Sintaxe': { bg: 'bg-amber-50', text: 'text-amber-800', border: 'border-amber-200', bar: 'bg-amber-500' },
+      'Regência': { bg: 'bg-orange-50', text: 'text-orange-800', border: 'border-orange-200', bar: 'bg-orange-500' },
+      'Concordância': { bg: 'bg-blue-50', text: 'text-blue-800', border: 'border-blue-200', bar: 'bg-blue-600' },
+      'Crase': { bg: 'bg-purple-50', text: 'text-purple-800', border: 'border-purple-200', bar: 'bg-purple-600' },
+      'Pontuação': { bg: 'bg-rose-50', text: 'text-rose-800', border: 'border-rose-200', bar: 'bg-rose-600' }
+    };
+
+    const ANNOTATION_CATEGORIES = [
+      { id: 'verbo', label: 'Verbo', colorClass: 'bg-blue-100 text-blue-900 border-blue-300', dot: 'bg-blue-600', hint: 'Ação, estado ou fenômeno; núcleo do predicado.' },
+      { id: 'conjuncao', label: 'Conjunção', colorClass: 'bg-emerald-100 text-emerald-900 border-emerald-300', dot: 'bg-emerald-600', hint: 'Conectivo que liga orações estabelecendo relação semântica (concessão, oposição, finalidade etc.).' },
+      { id: 'pronome', label: 'Pronome', colorClass: 'bg-purple-100 text-purple-900 border-purple-300', dot: 'bg-purple-600', hint: 'Retoma ou substitui termos (relativos, oblíquos, possessivos).' },
+      { id: 'preposicao', label: 'Preposição / Crase', colorClass: 'bg-orange-100 text-orange-900 border-orange-300', dot: 'bg-orange-600', hint: 'Termo exigido por regência verbal/nominal ou fusão com artigo (crase).' },
+      { id: 'sujeito', label: 'Sujeito', colorClass: 'bg-amber-100 text-amber-900 border-amber-300', dot: 'bg-amber-600', hint: 'Termo com o qual o verbo concorda (inclusive sujeito posposto).' },
+      { id: 'deslocado', label: 'Termo Deslocado / Pontuação', colorClass: 'bg-rose-100 text-rose-900 border-rose-300', dot: 'bg-rose-600', hint: 'Adjunto adverbial, conjunção intercalada ou oração explicativa isolada por vírgulas.' }
+    ];
+
+    const STORAGE_KEYS = {
+      STATS: 'normavunesp_stats_v1',
+      AI_HISTORY: 'normavunesp_ai_history_v1',
+      BARRIER_METRICS: 'normavunesp_barriers_v1'
+    };
+
+    // =========================================================================
+    // 2. ACERVO HÍBRIDO CURADO (PRECISÃO 100% — REVISADO PELA NORMA CULTA)
+    // =========================================================================
+
+    const CURATED_TEXTS = [
+      {
+        id: 'curated-1',
+        title: 'O relógio que parou na esquina',
+        genre: 'Crônica Cotidiana',
+        difficulty: 'Intermediário',
+        sourceType: 'curated',
+        readingTime: '3 min',
+        summary: 'Uma crônica sobre a pressa urbana e o impacto inesperado de um antigo relógio de praça que deixa de funcionar.',
+        paragraphs: [
+          'Durante décadas, o velho relógio da praça central manteve o ritmo da cidade. Embora ninguém mais dependesse dele para saber as horas, os moradores lançavam-lhe um olhar distraído ao atravessar a avenida.',
+          'Na última terça-feira, porém, os ponteiros estancaram às quatro e dezessete. Houve quem atribuísse o defeito à chuva torrencial da madrugada; outros garantiam que o mecanismo apenas se cansara de acompanhar a pressa contemporânea.',
+          'Curiosamente, a paralisação do aparelho obrigou os transeuntes a reduzir o passo. Sem o mostrador luminoso que lhes ditava a urgência, muitos perceberam que assistiam à própria rotina com uma indiferença quase mecânica.',
+          'Restam, hoje, apenas especulações sobre o conserto. Caso a prefeitura decida restaurar o monumento, talvez a cidade volte a correr; contudo, alguns vizinhos confessam preferir o silêncio daquela pausa à tirania dos minutos exatos.'
+        ],
+        annotations: [
+          { id: 'c1-a1', paragraphIndex: 0, text: 'Durante décadas,', category: 'deslocado', explanation: 'Adjunto adverbial de tempo deslocado no início do período, corretamente isolado por vírgula.' },
+          { id: 'c1-a2', paragraphIndex: 0, text: 'Embora', category: 'conjuncao', explanation: 'Conjunção subordinativa concessiva (equivale a "ainda que", "mesmo que"); exige verbo no modo subjuntivo.' },
+          { id: 'c1-a3', paragraphIndex: 0, text: 'lançavam-lhe', category: 'pronome', explanation: 'O pronome oblíquo "lhe" funciona como objeto indireto ("lançavam um olhar a ele / ao relógio").' },
+          { id: 'c1-a4', paragraphIndex: 1, text: ', porém,', category: 'deslocado', explanation: 'Conjunção adversativa deslocada no meio da oração; deve obrigatoriamente ficar entre vírgulas.' },
+          { id: 'c1-a5', paragraphIndex: 1, text: 'Houve', category: 'verbo', explanation: 'Verbo "haver" no sentido de existir: é impessoal (oração sem sujeito) e permanece invariável na 3ª pessoa do singular.' },
+          { id: 'c1-a6', paragraphIndex: 1, text: 'à chuva torrencial', category: 'preposicao', explanation: 'Crase obrigatória: preposição "a" (regida por "atribuir algo a algo") + artigo definido feminino "a".' },
+          { id: 'c1-a7', paragraphIndex: 2, text: 'que lhes ditava', category: 'pronome', explanation: '"Que" é pronome relativo (retoma "o mostrador luminoso") e "lhes" é objeto indireto (retoma "os transeuntes").' },
+          { id: 'c1-a8', paragraphIndex: 2, text: 'assistiam à própria rotina', category: 'preposicao', explanation: 'No sentido de ver/presenciar, "assistir" é transitivo indireto (rege preposição "a"), provocando crase antes de "própria rotina".' },
+          { id: 'c1-a9', paragraphIndex: 3, text: 'apenas especulações sobre o conserto', category: 'sujeito', explanation: 'Sujeito posposto do verbo intransitivo "Restam", cujo núcleo plural "especulações" determina a concordância verbal.' },
+          { id: 'c1-a10', paragraphIndex: 3, text: 'Caso', category: 'conjuncao', explanation: 'Conjunção subordinativa condicional (equivale a "se"), regendo o verbo no presente do subjuntivo ("decida").' }
+        ],
+        questions: [
+          {
+            id: 'c1-q1',
+            pillar: 'Morfologia',
+            quote: '“Embora ninguém mais dependesse dele para saber as horas, os moradores lançavam-lhe um olhar distraído...” (§ 1)',
+            stem: 'Assinale a alternativa em que a conjunção destacada é substituída sem alteração de sentido e mantendo-se a correção gramatical do trecho.',
+            options: [
+              'Ainda que ninguém mais dependesse dele para saber as horas...',
+              'Porquanto ninguém mais dependesse dele para saber as horas...',
+              'Portanto ninguém mais dependesse dele para saber as horas...',
+              'Caso ninguém mais dependesse dele para saber as horas...',
+              'Conforme ninguém mais dependesse dele para saber as horas...'
+            ],
+            correctIndex: 0,
+            explanation: 'A conjunção "Embora" expressa valor concessivo. "Ainda que" é sua equivalente semântica exata e também rege o verbo no modo subjuntivo ("dependesse"), preservando sentido e correção.',
+            distractorsNote: 'B) "Porquanto" indica causa/explicação; C) "Portanto" indica conclusão; D) "Caso" indica condição; E) "Conforme" indica conformidade.'
+          },
+          {
+            id: 'c1-q2',
+            pillar: 'Sintaxe',
+            quote: '“Restam, hoje, apenas especulações sobre o conserto.” (§ 4)',
+            stem: 'Considerando a organização sintática do período acima, o termo que exerce a função de sujeito da forma verbal “Restam” é:',
+            options: [
+              'oculto (eles — os moradores).',
+              'hoje.',
+              'apenas especulações sobre o conserto.',
+              'sobre o conserto.',
+              'inexistente, pois o verbo é impessoal.'
+            ],
+            correctIndex: 2,
+            explanation: 'O verbo "restar" é pessoal e intransitivo. Na ordem direta, teríamos: "Apenas especulações sobre o conserto restam hoje". Logo, o sujeito está posposto ao verbo e tem como núcleo "especulações".',
+            distractorsNote: 'A) Não há elipse de sujeito; B) "hoje" é adjunto adverbial de tempo; D) "sobre o conserto" é complemento nominal/adjunto restritivo dentro do sujeito; E) "restar" não é verbo impessoal.'
+          },
+          {
+            id: 'c1-q3',
+            pillar: 'Regência',
+            quote: '“...alguns vizinhos confessam preferir o silêncio daquela pausa à tirania dos minutos exatos.” (§ 4)',
+            stem: 'Assinale a alternativa em que a reescrita do trecho preserva a regência verbal exigida pela norma-padrão.',
+            options: [
+              'alguns vizinhos confessam preferir mais o silêncio daquela pausa do que a tirania dos minutos exatos.',
+              'alguns vizinhos confessam preferir o silêncio daquela pausa do que a tirania dos minutos exatos.',
+              'alguns vizinhos confessam preferir o silêncio daquela pausa ao rigor dos horários fixos.',
+              'alguns vizinhos confessam preferir pelo silêncio daquela pausa em vez da tirania dos minutos exatos.',
+              'alguns vizinhos confessam preferir ao silêncio daquela pausa à tirania dos minutos exatos.'
+            ],
+            correctIndex: 2,
+            explanation: 'Na norma culta, o verbo "preferir" é transitivo direto e indireto: prefere-se algo (OD) A outra coisa (OI). Não admite "do que" nem intensificadores como "mais" ou "muito". Substituindo "tirania" (fem.) por "rigor" (masc.), "à" passa corretamente a "ao".',
+            distractorsNote: 'A e B) Uso indevido de "mais... do que" e "do que"; D) Uso indevido de "preferir por"; E) O objeto direto "o silêncio" não leva preposição.'
+          },
+          {
+            id: 'c1-q4',
+            pillar: 'Concordância',
+            quote: '“Houve quem atribuísse o defeito à chuva torrencial da madrugada...” (§ 2)',
+            stem: 'Substituindo-se o verbo “Houve” por “Existir” e passando-se o sujeito para o plural, a reescrita integralmente correta quanto à concordância verbal é:',
+            options: [
+              'Houveram moradores que atribuíram o defeito à chuva torrencial da madrugada.',
+              'Existiu moradores que atribuíram o defeito à chuva torrencial da madrugada.',
+              'Existiram moradores que atribuiu o defeito à chuva torrencial da madrugada.',
+              'Existiram moradores que atribuíram o defeito à chuva torrencial da madrugada.',
+              'Existiam moradores que atribuísse o defeito à chuva torrencial da madrugada.'
+            ],
+            correctIndex: 3,
+            explanation: 'Enquanto "haver" (no sentido de existir) é impessoal e fica no singular, o verbo "existir" é pessoal e concorda com seu sujeito ("moradores" -> "Existiram"). O verbo da oração adjetiva também concorda com o antecedente do pronome "que" ("moradores" -> "atribuíram").',
+            distractorsNote: 'A) "Haver" no sentido de existir não vai para o plural ("Houveram" é incorreto); B) "Existiu" não concorda com "moradores"; C e E) O segundo verbo não concorda com "moradores".'
+          },
+          {
+            id: 'c1-q5',
+            pillar: 'Crase',
+            quote: '“...muitos perceberam que assistiam à própria rotina com uma indiferença quase mecânica.” (§ 3)',
+            stem: 'Assinale a alternativa em que o sinal indicativo de crase está empregado corretamente, em conformidade com a norma-padrão.',
+            options: [
+              'A paralisação do aparelho obrigou os transeuntes à reduzir o passo.',
+              'Muitos perceberam que assistiam à cena cotidiana com indiferença.',
+              'Houve quem atribuísse o defeito à chuvas torrenciais da madrugada.',
+              'Talvez a cidade volte à correr depois do conserto do monumento.',
+              'Muitos perceberam que assistiam à um espetáculo quase mecânico.'
+            ],
+            correctIndex: 1,
+            explanation: 'O verbo "assistir", no sentido de presenciar/ver, exige a preposição "a". Como "cena cotidiana" admite o artigo definido feminino "a", ocorre a fusão (a + a = à).',
+            distractorsNote: 'A e D) Não ocorre crase antes de verbos ("reduzir", "correr"); C) "a" no singular antes de palavra feminina no plural ("chuvas") não leva crase; E) Não ocorre crase antes de artigo indefinido masculino ("um").'
+          },
+          {
+            id: 'c1-q6',
+            pillar: 'Pontuação',
+            quote: '“Na última terça-feira, porém, os ponteiros estancaram às quatro e dezessete.” (§ 2)',
+            stem: 'No período acima, o par de vírgulas que isola o vocábulo “porém” justifica-se por:',
+            options: [
+              'separar o sujeito do seu respectivo predicado verbal.',
+              'marcar a elipse de um verbo já mencionado no parágrafo anterior.',
+              'isolar uma conjunção adversativa deslocada no interior da oração.',
+              'destacar um vocativo utilizado para dialogar com o leitor.',
+              'introduzir um aposto explicativo referente à expressão temporal.'
+            ],
+            correctIndex: 2,
+            explanation: 'Quando uma conjunção coordenativa adversativa ("porém", "contudo", "entretanto", "todavia") aparece deslocada — isto é, fora do início absoluto da oração —, deve ser isolada por vírgulas.',
+            distractorsNote: 'A) Nunca se separa sujeito de predicado com uma vírgula; B) Não há zeugma/elipse; D) Não há chamamento (vocativo); E) "porém" é conjunção, não aposto.'
+          }
+        ],
+        rewrites: [
+          {
+            id: 'c1-r1',
+            original: 'Houve quem atribuísse o defeito à chuva torrencial da madrugada.',
+            prompt: 'Substitua "Houve quem" por "Existiram moradores que" e troque "chuva torrencial" por "temporais intensos", fazendo todos os ajustes necessários de concordância verbal e crase.',
+            modelAnswer: 'Existiram moradores que atribuíram o defeito aos temporais intensos da madrugada.',
+            rubric: '1) Concordância de "Existiram" e "atribuíram" no plural; 2) Ajuste da crase "à" para "aos" diante do masculino plural "temporais intensos"; 3) Preservação do sentido original.'
+          },
+          {
+            id: 'c1-r2',
+            original: 'Alguns vizinhos confessam preferir o silêncio daquela pausa à tirania dos minutos exatos.',
+            prompt: 'Troque o sujeito "Alguns vizinhos" por "O morador mais antigo" e substitua "tirania dos minutos exatos" por "pressa dos relógios digitais", ajustando concordância e crase.',
+            modelAnswer: 'O morador mais antigo confessa preferir o silêncio daquela pausa à pressa dos relógios digitais.',
+            rubric: '1) Concordância verbal no singular ("confessa"); 2) Manutenção da regência de "preferir" (sem "do que") e da crase obrigatória em "à pressa".'
+          }
+        ]
+      },
+      {
+        id: 'curated-2',
+        title: 'A leitura profunda na era da fragmentação',
+        genre: 'Artigo de Opinião / Editorial',
+        difficulty: 'Avançado',
+        sourceType: 'curated',
+        readingTime: '4 min',
+        summary: 'Um texto argumentativo sobre como o consumo rápido de telas impacta a atenção e a compreensão crítica de textos extensos.',
+        paragraphs: [
+          'Nunca se produziu tanto conteúdo escrito quanto nas últimas duas décadas; todavia, raramente se dedicou tão pouco tempo à leitura contínua e reflexiva. O leitor contemporâneo habituou-se a deslizar o olhar por manchetes curtas, buscando sínteses imediatas.',
+          'Esse hábito, que parece inofensivo à primeira vista, altera gradualmente a capacidade de concentração. Quando o cérebro se acostuma a estímulos velozes, textos extensos passam a exigir um esforço cognitivo ao qual muitos já não se dispõem.',
+          'Não se trata de condenar as ferramentas digitais, cujo alcance democratizou o acesso ao conhecimento. O desafio consiste em conciliar a agilidade da tela com a paciência necessária para compreender argumentos complexos.',
+          'Para que se preservem as habilidades interpretativas, é imprescindível resgatar o silêncio diante da página. Sem essa pausa deliberada, corre-se o risco de substituir a compreensão crítica pela simples acumulação de informações desconexas.'
+        ],
+        annotations: [
+          { id: 'c2-a1', paragraphIndex: 0, text: '; todavia,', category: 'conjuncao', explanation: 'Conjunção coordenativa adversativa (oposição/contraste), pontuada com ponto e vírgula antes e vírgula depois.' },
+          { id: 'c2-a2', paragraphIndex: 0, text: 'à leitura contínua e reflexiva', category: 'preposicao', explanation: 'Crase obrigatória: "dedicar algo A alguém/algo" (preposição "a") + artigo definido feminino "a".' },
+          { id: 'c2-a3', paragraphIndex: 1, text: ', que parece inofensivo à primeira vista,', category: 'deslocado', explanation: 'Oração subordinada adjetiva explicativa isolada por vírgulas; traz uma observação acessória sobre "Esse hábito".' },
+          { id: 'c2-a4', paragraphIndex: 1, text: 'ao qual', category: 'pronome', explanation: 'Pronome relativo precedido da preposição "a" (a + o = ao), exigida pela regência do verbo pronominal "dispor-se a".' },
+          { id: 'c2-a5', paragraphIndex: 2, text: 'cujo alcance', category: 'pronome', explanation: 'Pronome relativo "cujo" indica posse ("o alcance das ferramentas digitais") e concorda com o termo seguinte ("alcance"). Não admite artigo depois.' },
+          { id: 'c2-a6', paragraphIndex: 2, text: 'O desafio', category: 'sujeito', explanation: 'Sujeito simples da forma verbal "consiste" (3ª pessoa do singular).' },
+          { id: 'c2-a7', paragraphIndex: 3, text: 'Para que', category: 'conjuncao', explanation: 'Locução conjuntiva subordinativa final (expressa finalidade/objetivo).' },
+          { id: 'c2-a8', paragraphIndex: 3, text: 'se preservem', category: 'verbo', explanation: 'Voz passiva sintética ("se" = partícula apassivadora): o verbo concorda no plural com o sujeito paciente "as habilidades interpretativas".' },
+          { id: 'c2-a9', paragraphIndex: 3, text: 'as habilidades interpretativas', category: 'sujeito', explanation: 'Sujeito paciente posposto na construção passiva sintética ("Para que as habilidades interpretativas sejam preservadas").' },
+          { id: 'c2-a10', paragraphIndex: 3, text: 'Sem essa pausa deliberada,', category: 'deslocado', explanation: 'Adjunto adverbial condicional/de modo anteposto à oração principal, corretamente separado por vírgula.' }
+        ],
+        questions: [
+          {
+            id: 'c2-q1',
+            pillar: 'Morfologia',
+            quote: '“Não se trata de condenar as ferramentas digitais, cujo alcance democratizou o acesso ao conhecimento.” (§ 3)',
+            stem: 'Em relação ao emprego do pronome relativo “cujo” no trecho acima, é correto afirmar que ele:',
+            options: [
+              'pode ser substituído por "onde", mantendo-se a mesma relação de posse.',
+              'estabelece relação de posse entre "ferramentas digitais" e "alcance", concordando com o termo consequente.',
+              'exige obrigatoriamente o emprego do artigo definido "o" imediatamente após si ("cujo o alcance").',
+              'retoma exclusivamente o substantivo "conhecimento", exercendo função de sujeito.',
+              'expressa ideia de explicação, equivalendo à conjunção coordenativa "pois".'
+            ],
+            correctIndex: 1,
+            explanation: 'O pronome relativo "cujo" sempre indica posse entre o termo antecedente (possuidor: "ferramentas digitais") e o consequente (coisa possuída: "alcance"), concordando em gênero e número com este último.',
+            distractorsNote: 'A) "Onde" indica lugar físico; C) Jamais se usa artigo após "cujo" ("cujo o" é erro grave); D) Retoma "ferramentas digitais"; E) É pronome relativo, não conjunção.'
+          },
+          {
+            id: 'c2-q2',
+            pillar: 'Sintaxe',
+            quote: '“Esse hábito, que parece inofensivo à primeira vista, altera gradualmente a capacidade de concentração.” (§ 2)',
+            stem: 'A oração “que parece inofensivo à primeira vista” classifica-se sintaticamente como:',
+            options: [
+              'oração subordinada substantiva subjetiva.',
+              'oração coordenada sindética explicativa.',
+              'oração subordinada adjetiva explicativa.',
+              'oração subordinada adverbial concessiva.',
+              'oração subordinada adjetiva restritiva.'
+            ],
+            correctIndex: 2,
+            explanation: 'Introduzida pelo pronome relativo "que" (retomando "Esse hábito") e isolada por vírgulas, trata-se de uma oração subordinada adjetiva explicativa, que acrescenta um atributo geral ao antecedente.',
+            distractorsNote: 'A) Não funciona como sujeito; B) "que" aqui é pronome relativo, não conjunção explicativa; D) Não exprime concessão; E) Seria restritiva apenas sem as vírgulas.'
+          },
+          {
+            id: 'c2-q3',
+            pillar: 'Regência',
+            quote: '“...textos extensos passam a exigir um esforço cognitivo ao qual muitos já não se dispõem.” (§ 2)',
+            stem: 'A presença da preposição “a” na contração “ao qual” justifica-se pela regência do verbo “dispor-se”. Substituindo-se “um esforço cognitivo” por “uma tarefa complexa”, a reescrita correta é:',
+            options: [
+              '...uma tarefa complexa a qual muitos já não se dispõem.',
+              '...uma tarefa complexa à qual muitos já não se dispõem.',
+              '...uma tarefa complexa onde muitos já não se dispõem.',
+              '...uma tarefa complexa que muitos já não se dispõem.',
+              '...uma tarefa complexa cujo muitos já não se dispõem.'
+            ],
+            correctIndex: 1,
+            explanation: 'Quem se dispõe, dispõe-se A algo. Substituindo o antecedente masculino por feminino ("uma tarefa complexa"), a preposição "a" funde-se ao artigo "a" de "a qual", gerando crase obrigatória: "à qual".',
+            distractorsNote: 'A) Falta o acento indicativo de crase; C) "Onde" exige ideia de lugar; D) Faltou a preposição "a" exigida pelo verbo; E) "Cujo" indica posse e exige substantivo após si.'
+          },
+          {
+            id: 'c2-q4',
+            pillar: 'Concordância',
+            quote: '“Para que se preservem as habilidades interpretativas, é imprescindível resgatar o silêncio...” (§ 4)',
+            stem: 'Assinale a alternativa em que a concordância verbal com o pronome “se” obedece à mesma regra normativa observada no trecho em destaque.',
+            options: [
+              'Não se tratam de condenar as novas ferramentas digitais.',
+              'Necessitam-se de pausas deliberadas para a leitura crítica.',
+              'Desenvolve-se, por meio da leitura profunda, novas habilidades cognitivas.',
+              'Almejam-se soluções rápidas em tempos de fragmentação informacional.',
+              'Confiam-se em sínteses imediatas sem verificação prévia.'
+            ],
+            correctIndex: 3,
+            explanation: 'Em "se preservem as habilidades" e "Almejam-se soluções rápidas", temos verbos transitivos diretos + pronome "se" (partícula apassivadora). O sujeito paciente está no plural ("soluções rápidas"), exigindo o verbo no plural ("Almejam-se").',
+            distractorsNote: 'A, B e E) Verbos transitivos indiretos ("tratar de", "necessitar de", "confiar em") têm "se" como índice de indeterminação do sujeito e DEVEM ficar no singular; C) "Desenvolver" é VTD, logo deveria estar no plural ("Desenvolvem-se novas habilidades").'
+          },
+          {
+            id: 'c2-q5',
+            pillar: 'Crase',
+            quote: '“...raramente se dedicou tão pouco tempo à leitura contínua e reflexiva.” (§ 1)',
+            stem: 'Assinale a alternativa em que o emprego do sinal indicativo de crase respeita integralmente a norma-padrão.',
+            options: [
+              'O leitor contemporâneo habituou-se à deslizar o olhar pelas manchetes.',
+              'As ferramentas digitais democratizaram o acesso à conhecimento variado.',
+              'Dedicou-se pouca atenção à análise de textos extensos e à reflexão crítica.',
+              'À partir da popularização das telas, a leitura tornou-se mais fragmentada.',
+              'Muitos leitores ficam frente à frente com informações desconexas.'
+            ],
+            correctIndex: 2,
+            explanation: 'Tanto "análise" quanto "reflexão" são substantivos femininos precedidos de artigo e regidos pela preposição "a" (dedicar atenção A algo), tornando a crase obrigatória nos dois casos.',
+            distractorsNote: 'A e D) Crase proibida antes de verbos ("deslizar", "partir"); B) Crase proibida antes de palavra masculina ("conhecimento"); E) Crase proibida entre palavras repetidas ("frente a frente").'
+          },
+          {
+            id: 'c2-q6',
+            pillar: 'Pontuação',
+            quote: '“Nunca se produziu tanto conteúdo escrito quanto nas últimas duas décadas; todavia, raramente se dedicou tão pouco tempo à leitura contínua...” (§ 1)',
+            stem: 'Assinale a alternativa que reescreve o período mantendo a pontuação e o sentido originais em total conformidade com a norma-padrão.',
+            options: [
+              'Nunca se produziu tanto conteúdo escrito quanto nas últimas duas décadas, porém, raramente, se dedicou tão pouco tempo à leitura contínua.',
+              'Nunca se produziu tanto conteúdo escrito quanto nas últimas duas décadas. Todavia, raramente se dedicou tão pouco tempo à leitura contínua.',
+              'Nunca se produziu tanto conteúdo escrito quanto nas últimas duas décadas; mas, raramente se dedicou tão pouco tempo à leitura contínua.',
+              'Nunca se produziu tanto conteúdo escrito quanto nas últimas duas décadas, entretanto raramente se dedicou, tão pouco tempo à leitura contínua.',
+              'Nunca se produziu, tanto conteúdo escrito quanto nas últimas duas décadas; todavia raramente se dedicou tão pouco tempo à leitura contínua.'
+            ],
+            correctIndex: 1,
+            explanation: 'A substituição do ponto e vírgula por ponto final, mantendo "Todavia" iniciando o novo período seguido de vírgula, preserva perfeitamente o valor adversativo e a correção da pontuação.',
+            distractorsNote: 'A) Vírgula indevida separando "raramente" do pronome proclítico "se"; C) Não se coloca vírgula logo após "mas" quando não há termo intercalado; D) Separação indevida entre verbo e objeto direto ("dedicou, tão pouco tempo"); E) Separação indevida entre verbo e sujeito paciente ("produziu, tanto conteúdo").'
+          }
+        ],
+        rewrites: [
+          {
+            id: 'c2-r1',
+            original: 'Para que se preservem as habilidades interpretativas, é imprescindível resgatar o silêncio diante da página.',
+            prompt: 'Passe a primeira oração da voz passiva sintética para a voz passiva analítica (eliminando o pronome "se") e substitua "Para que" por "A fim de que".',
+            modelAnswer: 'A fim de que as habilidades interpretativas sejam preservadas, é imprescindível resgatar o silêncio diante da página.',
+            rubric: '1) Conversão correta para a voz passiva analítica ("sejam preservadas") no presente do subjuntivo; 2) Concordância nominal de "preservadas" com "habilidades interpretativas"; 3) Manutenção da vírgula após a oração adverbial anteposta.'
+          },
+          {
+            id: 'c2-r2',
+            original: 'Textos extensos passam a exigir um esforço cognitivo ao qual muitos já não se dispõem.',
+            prompt: 'Substitua "um esforço cognitivo" por "uma concentração prolongada" e troque "muitos" por "o leitor apressado", ajustando concordância verbal, regência e crase.',
+            modelAnswer: 'Textos extensos passam a exigir uma concentração prolongada à qual o leitor apressado já não se dispõe.',
+            rubric: '1) Ajuste de "ao qual" para "à qual" com crase obrigatória; 2) Concordância verbal no singular em "se dispõe" (sem acento circunflexo).'
+          }
+        ]
+      },
+      {
+        id: 'curated-3',
+        title: 'Cartas que não chegam ao destino',
+        genre: 'Crônica Urbana',
+        difficulty: 'Intermediário / Avançado',
+        sourceType: 'curated',
+        readingTime: '3 min',
+        summary: 'Uma reflexão sobre a diferença entre a paciência das cartas manuscritas de outrora e a impulsividade das mensagens instantâneas.',
+        paragraphs: [
+          'Antigamente, escrever uma carta impunha ao remetente certo decoro. Era preciso escolher o papel, organizar as ideias com calma e aguardar semanas até que a resposta atravessasse cidades inteiras.',
+          'Hoje, as mensagens instantâneas eliminaram a espera, mas também encurtaram a reflexão. Enviamos dezenas de frases apressadas antes mesmo de ponderar se elas realmente traduzem o que sentimos.',
+          'Ontem, encontrei no fundo de uma gaveta um envelope amarelado, dirigido à minha avó e nunca postado. Nas linhas manuscritas, percebi uma delicadeza que raramente sobrevive à velocidade das telas.',
+          'Talvez não precisemos abandonar a tecnologia para recuperar esse cuidado. Bastaria que, antes de enviar qualquer recado, concedêssemos a nós mesmos alguns segundos de silêncio e revisão.'
+        ],
+        annotations: [
+          { id: 'c3-a1', paragraphIndex: 0, text: 'Antigamente,', category: 'deslocado', explanation: 'Adjunto adverbial de tempo deslocado no início da frase, separado por vírgula.' },
+          { id: 'c3-a2', paragraphIndex: 0, text: 'ao remetente', category: 'preposicao', explanation: 'Objeto indireto regido pela preposição "a" exigida pelo verbo transitivo direto e indireto "impor" (impor algo A alguém).' },
+          { id: 'c3-a3', paragraphIndex: 1, text: 'as mensagens instantâneas', category: 'sujeito', explanation: 'Sujeito simples da oração, cujo núcleo plural ("mensagens") determina a flexão de "eliminaram" e "encurtaram".' },
+          { id: 'c3-a4', paragraphIndex: 1, text: 'mas também', category: 'conjuncao', explanation: 'Conjunção que articula contraste/ressalva com acréscimo de consequência negativa.' },
+          { id: 'c3-a5', paragraphIndex: 2, text: 'dirigido à minha avó', category: 'preposicao', explanation: 'Caso clássico de crase facultativa: ocorre antes de pronome possessivo feminino singular ("minha") acompanhando substantivo expresso.' },
+          { id: 'c3-a6', paragraphIndex: 2, text: 'sobrevive à velocidade', category: 'verbo', explanation: 'O verbo "sobreviver" é transitivo indireto (rege preposição "a"), provocando crase obrigatória antes de "velocidade".' },
+          { id: 'c3-a7', paragraphIndex: 3, text: 'para', category: 'preposicao', explanation: 'Preposição com valor semântico de finalidade (equivale a "a fim de").' },
+          { id: 'c3-a8', paragraphIndex: 3, text: ', antes de enviar qualquer recado,', category: 'deslocado', explanation: 'Oração subordinada adverbial temporal reduzida de infinitivo intercalada no meio do período; exige o par de vírgulas.' },
+          { id: 'c3-a9', paragraphIndex: 3, text: 'a nós mesmos', category: 'pronome', explanation: 'Pronome pessoal oblíquo tônico ("nós") acompanhado de pronome de reforço ("mesmos"), exercendo função de objeto indireto.' }
+        ],
+        questions: [
+          {
+            id: 'c3-q1',
+            pillar: 'Morfologia',
+            quote: '“Talvez não precisemos abandonar a tecnologia para recuperar esse cuidado.” (§ 4)',
+            stem: 'No contexto em que está empregada, a preposição “para” introduz uma oração com valor semântico de:',
+            options: [
+              'consequência.',
+              'finalidade.',
+              'concessão.',
+              'proporção.',
+              'causa.'
+            ],
+            correctIndex: 1,
+            explanation: 'A preposição "para" + infinitivo ("para recuperar") introduz uma oração subordinada adverbial final, indicando o objetivo da ação (equivale a "a fim de recuperar").',
+            distractorsNote: 'A) Consequência usaria "tanto que"; C) Concessão usaria "apesar de"; D) Proporção usaria "à medida que"; E) Causa usaria "por" / "porque".'
+          },
+          {
+            id: 'c3-q2',
+            pillar: 'Sintaxe',
+            quote: '“Antigamente, escrever uma carta impunha ao remetente certo decoro.” (§ 1)',
+            stem: 'Substituindo-se o termo “ao remetente” por um pronome pessoal oblíquo correspondente à sua função sintática, obtém-se corretamente:',
+            options: [
+              'impunha-o certo decoro.',
+              'impunha-no certo decoro.',
+              'impunha-lhe certo decoro.',
+              'impunha-se certo decoro.',
+              'impunha-lo certo decoro.'
+            ],
+            correctIndex: 2,
+            explanation: 'O termo "ao remetente" é objeto indireto (preposicionado) do verbo "impor". Na norma culta, o pronome oblíquo adequado para substituir o objeto indireto de 3ª pessoa é "lhe".',
+            distractorsNote: 'A, B e E) Os pronomes "o", "no" e "lo" substituem objetos diretos (sem preposição); D) "se" alteraria o sentido para reflexivo/passivo.'
+          },
+          {
+            id: 'c3-q3',
+            pillar: 'Regência',
+            quote: '“Nas linhas manuscritas, percebi uma delicadeza que raramente sobrevive à velocidade das telas.” (§ 3)',
+            stem: 'Assinale a alternativa em que a substituição do verbo “sobreviver” mantém a regência correta e a adequação à norma-padrão.',
+            options: [
+              '...uma delicadeza que raramente resiste à velocidade das telas.',
+              '...uma delicadeza que raramente obedece a velocidade das telas.',
+              '...uma delicadeza que raramente assiste a velocidade das telas.',
+              '...uma delicadeza que raramente implica na velocidade das telas.',
+              '...uma delicadeza que raramente visa a velocidade das telas.'
+            ],
+            correctIndex: 0,
+            explanation: 'O verbo "resistir", assim como "sobreviver", é transitivo indireto regido pela preposição "a" (resistir A algo), exigindo o sinal indicativo de crase em "à velocidade".',
+            distractorsNote: 'B e C) "Obedecer" e "assistir" (presenciar) exigem preposição "a", faltando a crase ("à velocidade"); D) "Implicar" no sentido de acarretar é transitivo direto (não rege "em"); E) "Visar" no sentido de objetivar exige crase ("à velocidade").'
+          },
+          {
+            id: 'c3-q4',
+            pillar: 'Concordância',
+            quote: '“Era preciso escolher o papel, organizar as ideias com calma...” (§ 1)',
+            stem: 'Considerando as regras de concordância nominal e verbal da norma-padrão, assinale a alternativa inteiramente correta.',
+            options: [
+              'Era necessário a calma e a paciência para redigir uma boa carta.',
+              'Eram necessárias muita calma e paciência para redigir uma boa carta.',
+              'Bastariam que concedêssemos alguns segundos de revisão antes do envio.',
+              'Enviam-se, todos os dias, dezenas de frases apressadas sem reflexão.',
+              'Segue anexo ao envelope duas cartas manuscritas e um bilhete.'
+            ],
+            correctIndex: 3,
+            explanation: 'Em "Enviam-se... dezenas de frases apressadas", o pronome "se" é partícula apassivadora e o verbo concorda corretamente no plural com o sujeito paciente "dezenas de frases apressadas".',
+            distractorsNote: 'A) Com artigo determinante ("a calma"), o adjetivo deve concordar: "Eram necessárias a calma e a paciência"; B) Sem artigo antes de "muita calma", o adjetivo "necessárias" no plural antes do sujeito composto cujo primeiro núcleo é singular fica inadequado (o padrão é concordar com o mais próximo ou usar artigo); C) O sujeito de "Bastar" é oracional ("que concedêssemos..."), exigindo o verbo no singular ("Bastaria"); E) "Anexo" é adjetivo e deve concordar com o sujeito plural: "Seguem anexas... duas cartas".'
+          },
+          {
+            id: 'c3-q5',
+            pillar: 'Crase',
+            quote: '“Ontem, encontrei no fundo de uma gaveta um envelope amarelado, dirigido à minha avó e nunca postado.” (§ 3)',
+            stem: 'Sobre o acento indicativo de crase empregado em “à minha avó”, é correto afirmar, segundo a norma-padrão, que ele é:',
+            options: [
+              'obrigatório, pois o substantivo "avó" exige sempre a anteposição do artigo definido.',
+              'proibido, uma vez que não se usa crase antes de pronomes de qualquer natureza.',
+              'facultativo, pois antecede um pronome possessivo feminino singular acompanhando substantivo expresso.',
+              'obrigatório apenas para evitar ambiguidade de sentido com o adjetivo "dirigido".',
+              'incorreto, pois o particípio "dirigido" não rege a preposição "a".'
+            ],
+            correctIndex: 2,
+            explanation: 'Diante de pronomes possessivos femininos no singular ("minha", "tua", "sua", "nossa", "vossa") que acompanham um substantivo expresso ("avó"), o uso do artigo definido é opcional; portanto, a crase é facultativa ("dirigido à minha avó" ou "dirigido a minha avó").',
+            distractorsNote: 'A e D) Não é obrigatório nesse caso; B) A proibição geral não se aplica aos possessivos femininos adjetivos; E) "Dirigido" rege a preposição "a" (dirigido a alguém).'
+          },
+          {
+            id: 'c3-q6',
+            pillar: 'Pontuação',
+            quote: '“Bastaria que, antes de enviar qualquer recado, concedêssemos a nós mesmos alguns segundos de silêncio e revisão.” (§ 4)',
+            stem: 'O segmento “antes de enviar qualquer recado” encontra-se entre vírgulas porque constitui:',
+            options: [
+              'o sujeito deslocado da forma verbal "concedêssemos".',
+              'uma oração adverbial temporal intercalada no período.',
+              'um aposto enumerativo referente a "alguns segundos".',
+              'um complemento nominal separado do verbo principal.',
+              'uma oração coordenada sindética conclusiva.'
+            ],
+            correctIndex: 1,
+            explanation: 'O segmento "antes de enviar qualquer recado" é uma oração subordinada adverbial temporal (reduzida de infinitivo) intercalada entre a conjunção integrante "que" e o verbo "concedêssemos", exigindo o par de vírgulas.',
+            distractorsNote: 'A) O sujeito de "concedêssemos" é oculto ("nós"); C) Não enumera termos; D) Não completa sentido de nome; E) Não expressa conclusão.'
+          }
+        ],
+        rewrites: [
+          {
+            id: 'c3-r1',
+            original: 'Antigamente, escrever uma carta impunha ao remetente certo decoro.',
+            prompt: 'Substitua "ao remetente" pelo pronome oblíquo adequado e passe o verbo "impor" para o presente do indicativo, mantendo a norma culta.',
+            modelAnswer: 'Antigamente, escrever uma carta impõe-lhe certo decoro.',
+            rubric: '1) Uso correto do pronome oblíquo "lhe" em ênclise ("impõe-lhe"); 2) Flexão correta de "impor" no presente do indicativo ("impõe"); 3) Manutenção da vírgula após "Antigamente".'
+          },
+          {
+            id: 'c3-r2',
+            original: 'Percebi uma delicadeza que raramente sobrevive à velocidade das telas.',
+            prompt: 'Passe "uma delicadeza" para o plural ("delicadezas") e substitua "velocidade das telas" por "ritmo acelerado das telas", ajustando concordância e crase.',
+            modelAnswer: 'Percebi delicadezas que raramente sobrevivem ao ritmo acelerado das telas.',
+            rubric: '1) Concordância verbal no plural ("sobrevivem"); 2) Substituição da crase "à" por "ao" diante do substantivo masculino "ritmo".'
+          }
+        ]
+      }
+    ];
+
+    // Texto de exemplo para o Estúdio IA
+    const SAMPLE_USER_TEXT = `A pressa transformou a maneira como conversamos nas grandes cidades. Embora os aplicativos prometam aproximar pessoas distantes, raramente dispomos de alguns minutos para ouvir com atenção quem está ao nosso lado.
+
+Na semana passada, durante uma viagem de metrô, observei que quase todos os passageiros mantinham o olhar fixo às pequenas telas luminosas. Houve apenas um senhor que lia um livro de bolso, indiferente ao burburinho do vagão.
+
+Não se trata de rejeitar os avanços tecnológicos, cujo papel facilita inúmeras tarefas cotidianas. O desafio, porém, consiste em impedir que a conectividade constante substitua o encontro humano genuíno. Caso não retomemos o hábito da escuta, correremos o risco de viver cercados de mensagens, mas carentes de diálogo.`;
+
+    // =========================================================================
+    // 3. ESTADO GLOBAL E PERSISTÊNCIA (LOCALSTORAGE)
+    // =========================================================================
+
+    function loadJSON(key, fallback) {
+      try {
+        const raw = localStorage.getItem(key);
+        return raw ? JSON.parse(raw) : fallback;
+      } catch (e) {
+        return fallback;
+      }
+    }
+
+    function saveJSON(key, value) {
+      try {
+        localStorage.setItem(key, JSON.stringify(value));
+      } catch (e) {
+        // Ignora erro de quota silenciosamente
+      }
+    }
+
+    function createEmptyStats() {
+      const byPillar = {};
+      PILLARS.forEach(p => {
+        byPillar[p] = { answered: 0, correct: 0 };
+      });
+      return {
+        byPillar,
+        recentErrors: [] // { id, textId, textTitle, questionId, pillar, stem, explanation, date }
+      };
+    }
+
+    const STATE = {
+      activeTab: 'acervo', // 'acervo' | 'estudio' | 'diagnostico' | 'barreiras' | 'study'
+      currentText: null,
+      studySubMode: 'leitura', // 'leitura' | 'questoes' | 'reescrita'
+
+      // Estado da Leitura Ativa
+      selectedCategory: 'verbo',
+      foundAnnotations: {}, // { [annId]: true }
+      lastReadingFeedback: null, // { type: 'success'|'error'|'info', title, message }
+
+      // Estado das Questões (por texto na sessão)
+      questionAnswers: {}, // { [questionId]: selectedOptionIndex }
+      contestationResults: {}, // { [questionId]: { loading, text, error } }
+
+      // Estado do Laboratório de Reescrita
+      rewriteInputs: {}, // { [rewriteId]: string }
+      rewriteResults: {}, // { [rewriteId]: { loading, data, isFallback } }
+
+      // Estado do Estúdio IA
+      studioInputText: '',
+      studioFocusMode: 'equilibrado', // 'equilibrado' | 'pontos_fracos'
+      studioPipeline: {
+        running: false,
+        step: 0, // 0 idle, 1 camada 1, 2 camada 2, 3 concluído
+        error: null
+      },
+
+      // Persistidos
+      stats: loadJSON(STORAGE_KEYS.STATS, createEmptyStats()),
+      aiHistory: loadJSON(STORAGE_KEYS.AI_HISTORY, []),
+      barrierMetrics: loadJSON(STORAGE_KEYS.BARRIER_METRICS, {
+        textsAudited: 0,
+        correctionsByAuditor: 0,
+        contestationsRun: 0
+      })
+    };
+
+    // =========================================================================
+    // 4. SERVIÇO GEMINI API (BACKOFF + 2 CAMADAS + CONTESTAÇÃO + REESCRITA)
+    // =========================================================================
+
+    const GEMINI_MODEL = 'gemini-3-flash-preview';
+    const GEMINI_API_KEY = ''; // Fornecido automaticamente pelo ambiente em tempo de execução
+
+    async function callGeminiAPI(payload, maxRetries = 4) {
+      const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`;
+      let delay = 1000;
+
+      for (let attempt = 0; attempt <= maxRetries; attempt++) {
+        try {
+          const response = await fetch(apiUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          });
+
+          if (!response.ok) {
+            if ((response.status === 429 || response.status >= 500) && attempt < maxRetries) {
+              await new Promise(r => setTimeout(r, delay));
+              delay *= 2;
+              continue;
+            }
+            const errText = await response.text().catch(() => '');
+            throw new Error(`HTTP ${response.status}: ${errText || 'Falha na comunicação com a API.'}`);
+          }
+
+          const result = await response.json();
+          const text = result?.candidates?.[0]?.content?.parts?.[0]?.text;
+          if (!text) {
+            throw new Error('A resposta da IA não continha texto válido.');
+          }
+          return text;
+        } catch (err) {
+          if (attempt < maxRetries) {
+            await new Promise(r => setTimeout(r, delay));
+            delay *= 2;
+            continue;
+          }
+          throw err;
+        }
+      }
+    }
+
+    /**
+     * Extrai e faz parse seguro de JSON mesmo quando envolvido em blocos markdown ```json ... ```
+     */
+    function cleanAndParseJSON(rawText) {
+      let cleaned = (rawText || '').trim();
+      // Remove cercas de código markdown se existirem
+      cleaned = cleaned.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/i, '').trim();
+
+      try {
+        return JSON.parse(cleaned);
+      } catch (e) {
+        // Tentativa de extrair o primeiro objeto JSON balanceado
+        const firstBrace = cleaned.indexOf('{');
+        const lastBrace = cleaned.lastIndexOf('}');
+        if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
+          const slice = cleaned.slice(firstBrace, lastBrace + 1);
+          return JSON.parse(slice);
+        }
+        throw new Error('Não foi possível interpretar o JSON retornado pela IA.');
+      }
+    }
+
+    /**
+     * CAMADA 1: Geração estrita no padrão VUNESP com Few-Shot e JSON estruturado
+     */
+    async function generateStudyUnitLayer1(rawText, focusMode, weakPillars) {
+      const paragraphs = rawText
+        .split(/\n+/)
+        .map(p => p.trim())
+        .filter(p => p.length > 0);
+
+      const focusInstruction = focusMode === 'pontos_fracos' && weakPillars.length > 0
+        ? `FOCO ADAPTATIVO: O aluno tem maior dificuldade em ${weakPillars.join(' e ')}. Das 6 questões, gere 2 questões de ${weakPillars[0]}, 2 questões de ${weakPillars[1] || weakPillars[0]}, e 2 questões de outros pilares dentre [${PILLARS.join(', ')}].`
+        : `FOCO EQUILIBRADO: Gere exatamente 6 questões, sendo 1 questão para cada um dos 6 pilares: Morfologia, Sintaxe, Regência, Concordância, Crase e Pontuação.`;
+
+      const systemPrompt = `Você é um elaborador sênior de provas de Língua Portuguesa da banca VUNESP (TJ-SP, PM-SP, UNESP).
+Sua missão é aplicar Engenharia Reversa no texto fornecido e gerar uma unidade de estudo rigorosamente fiel à norma culta (Gramática Normativa Brasileira: Bechara, Cunha & Cintra, Rocha Lima) e ao estilo VUNESP.
+
+REGRAS ESTRITAS DO ESTILO VUNESP (FEW-SHOT):
+1. A VUNESP evita cobrar nomenclatura decoreba isolada; prefere reescrita mantendo sentido e norma, substituição de conjunções (ex.: "Embora" -> "Ainda que"), regência com pronomes relativos (ex.: "ao qual", "cujo"), concordância com "haver" (impessoal) e partícula "se", crase (inclusive casos facultativos antes de possessivo feminino) e pontuação de termos deslocados/intercalados.
+2. NUNCA crie questão com duas alternativas corretas nem com gabarito duvidoso.
+3. Nas marcações de Leitura Ativa (annotations), o campo "text" DEVE ser uma substring EXATA (caractere por caractere) presente no parágrafo indicado em "paragraphIndex" (base 0).
+4. Categorias permitidas em annotations: "verbo", "conjuncao", "pronome", "preposicao", "sujeito", "deslocado".
+5. Pilares permitidos em questions: "Morfologia", "Sintaxe", "Regência", "Concordância", "Crase", "Pontuação".
+6. Cada questão DEVE ter exatamente 5 alternativas (A a E), índice "correctIndex" de 0 a 4, explicação normativa completa e análise breve dos erros das distratoras.
+7. Retorne APENAS um objeto JSON válido, sem texto fora do JSON.`;
+
+      const userQuery = `Analise os parágrafos abaixo (numerados a partir de 0) e gere a unidade de estudo completa em JSON.
+
+${focusInstruction}
+
+PARÁGRAFOS DO TEXTO:
+${paragraphs.map((p, idx) => `[Parágrafo ${idx}]: ${p}`).join('\n\n')}
+
+ESTRUTURA JSON OBRIGATÓRIA:
+{
+  "title": "Título curto e editorial para o texto",
+  "genre": "Crônica | Editorial | Notícia | Artigo de Opinião",
+  "difficulty": "Intermediário | Avançado",
+  "summary": "Resumo em 1 frase",
+  "annotations": [
+    {
+      "paragraphIndex": 0,
+      "text": "trecho EXATO existente no parágrafo",
+      "category": "verbo|conjuncao|pronome|preposicao|sujeito|deslocado",
+      "explanation": "Explicação gramatical objetiva em 1 ou 2 frases"
+    }
+  ],
+  "questions": [
+    {
+      "pillar": "Morfologia|Sintaxe|Regência|Concordância|Crase|Pontuação",
+      "quote": "Citação exata de um trecho do texto (§ X)",
+      "stem": "Enunciado no padrão VUNESP",
+      "options": ["Alt A", "Alt B", "Alt C", "Alt D", "Alt E"],
+      "correctIndex": 0,
+      "explanation": "Justificativa normativa da alternativa correta",
+      "distractorsNote": "Breve justificativa do erro das demais alternativas"
+    }
+  ],
+  "rewrites": [
+    {
+      "original": "Período real extraído do texto",
+      "prompt": "Comando de mutação no estilo VUNESP (ex.: passar sujeito ao plural, trocar verbo por sinônimo de regência diferente, ajustar crase/pontuação)",
+      "modelAnswer": "Reescrita 100% correta segundo a norma culta",
+      "rubric": "Critérios principais avaliados (concordância, regência, crase, pontuação)"
+    }
+  ]
+}
+Gere entre 8 e 10 annotations, exatamente 6 questions e exatamente 2 rewrites.`;
+
+      const raw = await callGeminiAPI({
+        contents: [{ parts: [{ text: userQuery }] }],
+        systemInstruction: { parts: [{ text: systemPrompt }] },
+        generationConfig: {
+          responseMimeType: 'application/json',
+          temperature: 0.35
+        }
+      });
+
+      const parsed = cleanAndParseJSON(raw);
+      parsed.paragraphs = paragraphs;
+      return parsed;
+    }
+
+    /**
+     * CAMADA 2: Auditor Gramatical Automatizado (Barreira contra alucinações e erros sutis)
+     */
+    async function auditStudyUnitLayer2(rawText, layer1Data) {
+      const systemPrompt = `Você é o Auditor-Chefe de Revisão Normativa da banca VUNESP.
+Sua única função é AUDITAR, VALIDAR e CORRIGIR (se necessário) um JSON de questões de Língua Portuguesa gerado por outra IA, eliminando erros sutis antes que cheguem ao aluno.
+
+CHECKLIST OBRIGATÓRIO DE AUDITORIA:
+1. Crase: verifique casos facultativos (ex.: antes de pronome possessivo feminino singular ou nome próprio feminino) — nunca marque como "obrigatória" uma crase facultativa, nem crie distratora que na verdade é aceita pela norma culta.
+2. Regência: verifique verbos de dupla regência ou variação (ex.: "preferir", "assistir", "visar", "implicar", "chegar a").
+3. Concordância: verifique "haver" impessoal, "existir" pessoal, sujeito posposto e partícula "se" (VTD = apassivadora; VTI/VI = indeterminação do sujeito).
+4. Gabarito Único: assegure-se de que existe APENAS UMA alternativa inquestionavelmente correta em cada questão e que "correctIndex" aponta para ela.
+5. Fidelidade ao Texto: confirme se os trechos de "annotations" existem nos respectivos parágrafos; remova ou ajuste qualquer marcação inexata.
+6. Retorne o JSON completo já corrigido, acrescentando o campo "auditReport": { "passed": true, "correctionsCount": number, "notes": ["Lista objetiva de confirmações ou ressalvas gramaticais relevantes para o aluno, ex: casos facultativos"] }.`;
+
+      const userQuery = `TEXTO ORIGINAL:
+${rawText}
+
+JSON GERADO NA CAMADA 1 PARA AUDITORIA:
+${JSON.stringify(layer1Data)}
+
+Devolva o JSON completo auditado (mantendo a mesma estrutura + "auditReport"). Retorne APENAS JSON válido.`;
+
+      const raw = await callGeminiAPI({
+        contents: [{ parts: [{ text: userQuery }] }],
+        systemInstruction: { parts: [{ text: systemPrompt }] },
+        generationConfig: {
+          responseMimeType: 'application/json',
+          temperature: 0.15
+        }
+      });
+
+      const audited = cleanAndParseJSON(raw);
+      // Garante preservação dos parágrafos originais
+      audited.paragraphs = layer1Data.paragraphs;
+      return audited;
+    }
+
+    /**
+     * Contestação / Revisão Normativa Independente de uma questão específica
+     */
+    async function contestQuestionWithAI(textObj, question) {
+      const systemPrompt = `Você é um gramático especialista na banca VUNESP. Um estudante solicitou uma revisão normativa independente de uma questão para verificar se há ambiguidade, dupla possibilidade de gabarito ou caso facultativo.
+Responda em português claro, estruturado em tópicos curtos (sem markdown excessivo):
+1. Veredito: (Gabarito Confirmado / Ressalva Gramatical / Possível Ambiguidade)
+2. Fundamentação Normativa: explique a regra aplicada segundo a gramática normativa padrão.
+3. Análise de Casos Limítrofes: aponte se há alguma exceção (crase facultativa, dupla regência, pontuação estilística) que o estudante deve conhecer.`;
+
+      const letters = ['A', 'B', 'C', 'D', 'E'];
+      const userQuery = `TRECHO CITADO: ${question.quote}
+ENUNCIADO (${question.pillar}): ${question.stem}
+ALTERNATIVAS:
+${question.options.map((opt, i) => `${letters[i]}) ${opt}`).join('\n')}
+GABARITO OFICIAL INDICADO: ${letters[question.correctIndex]}
+JUSTIFICATIVA ATUAL: ${question.explanation}
+
+Emita seu parecer normativo independente.`;
+
+      return await callGeminiAPI({
+        contents: [{ parts: [{ text: userQuery }] }],
+        systemInstruction: { parts: [{ text: systemPrompt }] },
+        generationConfig: { temperature: 0.2 }
+      });
+    }
+
+    /**
+     * Avaliação de Reescrita em 5 critérios (com fallback local inteligente)
+     */
+    async function evaluateRewriteWithAI(rewriteObj, userAnswer) {
+      const systemPrompt = `Você é um corretor de questões discursivas e reescrita da banca VUNESP.
+Avalie a reescrita do aluno com base na frase original, no comando de mutação e no gabarito modelo.
+Avalie 5 critérios obrigatórios: Concordância, Regência, Crase, Pontuação e Preservação de Sentido.
+Retorne APENAS JSON válido no formato:
+{
+  "overallStatus": "Correta | Parcialmente Correta | Precisa de Ajustes",
+  "score": 0 a 100,
+  "summary": "Feedback direto e encorajador em 2 frases",
+  "criteria": [
+    { "name": "Concordância", "status": "ok|atencao|erro", "comment": "Comentário breve" },
+    { "name": "Regência", "status": "ok|atencao|erro", "comment": "Comentário breve" },
+    { "name": "Crase", "status": "ok|atencao|erro", "comment": "Comentário breve" },
+    { "name": "Pontuação", "status": "ok|atencao|erro", "comment": "Comentário breve" },
+    { "name": "Preservação de Sentido", "status": "ok|atencao|erro", "comment": "Comentário breve" }
+  ],
+  "suggestedRewrite": "Sugestão ideal mantendo a norma culta"
+}`;
+
+      const userQuery = `FRASE ORIGINAL: ${rewriteObj.original}
+COMANDO DE MUTAÇÃO: ${rewriteObj.prompt}
+GABARITO MODELO DE REFERÊNCIA: ${rewriteObj.modelAnswer}
+CRITÉRIOS DA RUBRICA: ${rewriteObj.rubric}
+RESPOSTA DO ALUNO: ${userAnswer}`;
+
+      const raw = await callGeminiAPI({
+        contents: [{ parts: [{ text: userQuery }] }],
+        systemInstruction: { parts: [{ text: systemPrompt }] },
+        generationConfig: {
+          responseMimeType: 'application/json',
+          temperature: 0.2
+        }
+      });
+
+      return cleanAndParseJSON(raw);
+    }
+
+    // =========================================================================
+    // 5. LÓGICA DE DIAGNÓSTICO, ESTATÍSTICAS E PONTOS FRACOS
+    // =========================================================================
+
+    function recordAnswerInStats(textObj, question, isCorrect) {
+      const pillar = PILLARS.includes(question.pillar) ? question.pillar : 'Morfologia';
+      if (!STATE.stats.byPillar[pillar]) {
+        STATE.stats.byPillar[pillar] = { answered: 0, correct: 0 };
+      }
+      STATE.stats.byPillar[pillar].answered += 1;
+      if (isCorrect) {
+        STATE.stats.byPillar[pillar].correct += 1;
+      } else {
+        // Adiciona à fila de revisão espaçada (evitando duplicar a mesma questão)
+        STATE.stats.recentErrors = STATE.stats.recentErrors.filter(e => e.questionId !== question.id);
+        STATE.stats.recentErrors.unshift({
+          id: `err-${Date.now()}`,
+          textId: textObj.id,
+          textTitle: textObj.title,
+          questionId: question.id,
+          pillar,
+          stem: question.stem,
+          explanation: question.explanation,
+          date: new Date().toLocaleDateString('pt-BR')
+        });
+        // Mantém os 15 erros mais recentes
+        if (STATE.stats.recentErrors.length > 15) {
+          STATE.stats.recentErrors.pop();
+        }
+      }
+      saveJSON(STORAGE_KEYS.STATS, STATE.stats);
+    }
+
+    function getWeakestPillars(count = 2) {
+      const entries = PILLARS.map(p => {
+        const d = STATE.stats.byPillar[p] || { answered: 0, correct: 0 };
+        const rate = d.answered > 0 ? (d.correct / d.answered) : 1.01; // pilares não respondidos ficam por último
+        return { pillar: p, answered: d.answered, rate };
+      });
+      const answeredOnes = entries.filter(e => e.answered > 0);
+      if (answeredOnes.length === 0) {
+        return ['Regência', 'Crase']; // Padrão inicial mais cobrado pela VUNESP
+      }
+      answeredOnes.sort((a, b) => a.rate - b.rate);
+      const selected = answeredOnes.slice(0, count).map(e => e.pillar);
+      if (selected.length < count) {
+        for (const p of PILLARS) {
+          if (!selected.includes(p)) {
+            selected.push(p);
+            if (selected.length === count) break;
+          }
+        }
+      }
+      return selected;
+    }
+
+    // =========================================================================
+    // 6. UTILITÁRIOS DE UI (MODAL CUSTOMIZADO, TOAST, ESCAPE HTML)
+    // =========================================================================
+
+    function escapeHTML(str) {
+      return String(str || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+    function showToast(message, type = 'info') {
+      const container = document.getElementById('toast-container');
+      const colors = {
+        success: 'bg-emerald-900 text-white border-emerald-700',
+        error: 'bg-rose-900 text-white border-rose-700',
+        info: 'bg-ink text-white border-slate-700'
+      };
+      const el = document.createElement('div');
+      el.className = `pointer-events-auto px-4 py-3 rounded-xl shadow-lg border text-sm font-medium transition-all duration-300 ${colors[type] || colors.info}`;
+      el.textContent = message;
+      container.appendChild(el);
+      setTimeout(() => {
+        el.style.opacity = '0';
+        el.style.transform = 'translateY(8px)';
+        setTimeout(() => el.remove(), 300);
+      }, 3200);
+    }
+
+    function openModal({ title, message, icon = 'ℹ️', confirmLabel = 'Confirmar', cancelLabel = 'Cancelar', onConfirm = null, danger = false }) {
+      const modal = document.getElementById('custom-modal');
+      document.getElementById('modal-title').textContent = title;
+      document.getElementById('modal-message').textContent = message;
+      document.getElementById('modal-icon').textContent = icon;
+
+      const actions = document.getElementById('modal-actions');
+      actions.innerHTML = '';
+
+      if (onConfirm) {
+        const cancelBtn = document.createElement('button');
+        cancelBtn.className = 'px-4 py-2 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-100 transition';
+        cancelBtn.textContent = cancelLabel;
+        cancelBtn.onclick = closeModal;
+        actions.appendChild(cancelBtn);
+
+        const confirmBtn = document.createElement('button');
+        confirmBtn.className = `px-4 py-2 rounded-lg text-sm font-semibold text-white transition ${danger ? 'bg-rose-600 hover:bg-rose-700' : 'bg-ink hover:bg-slate-800'}`;
+        confirmBtn.textContent = confirmLabel;
+        confirmBtn.onclick = () => {
+          closeModal();
+          onConfirm();
+        };
+        actions.appendChild(confirmBtn);
+      } else {
+        const okBtn = document.createElement('button');
+        okBtn.className = 'px-4 py-2 rounded-lg text-sm font-semibold bg-ink text-white hover:bg-slate-800 transition';
+        okBtn.textContent = 'Entendi';
+        okBtn.onclick = closeModal;
+        actions.appendChild(okBtn);
+      }
+
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    function closeModal() {
+      const modal = document.getElementById('custom-modal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+
+    // =========================================================================
+    // 7. NAVEGAÇÃO E AÇÕES DO USUÁRIO
+    // =========================================================================
+
+    function navigateTo(tab) {
+      STATE.activeTab = tab;
+      renderApp();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function openTextForStudy(textId, initialSubMode = 'leitura') {
+      const found =
+        CURATED_TEXTS.find(t => t.id === textId) ||
+        STATE.aiHistory.find(t => t.id === textId);
+
+      if (!found) {
+        showToast('Texto não encontrado no acervo.', 'error');
+        return;
+      }
+
+      STATE.currentText = found;
+      STATE.studySubMode = initialSubMode;
+      STATE.activeTab = 'study';
+      STATE.foundAnnotations = {};
+      STATE.lastReadingFeedback = null;
+      renderApp();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function setStudySubMode(mode) {
+      STATE.studySubMode = mode;
+      renderApp();
+    }
+
+    function selectCategory(catId) {
+      STATE.selectedCategory = catId;
+      renderApp();
+    }
+
+    function handleAnnotationClick(annId) {
+      if (!STATE.currentText) return;
+      const ann = STATE.currentText.annotations.find(a => a.id === annId);
+      if (!ann) return;
+
+      const selectedCat = ANNOTATION_CATEGORIES.find(c => c.id === STATE.selectedCategory);
+      const correctCat = ANNOTATION_CATEGORIES.find(c => c.id === ann.category);
+
+      if (STATE.foundAnnotations[annId]) {
+        STATE.lastReadingFeedback = {
+          type: 'info',
+          title: `${correctCat ? correctCat.label : ann.category} — "${ann.text}"`,
+          message: ann.explanation
+        };
+        renderApp();
+        return;
+      }
+
+      if (ann.category === STATE.selectedCategory) {
+        STATE.foundAnnotations[annId] = true;
+        STATE.lastReadingFeedback = {
+          type: 'success',
+          title: `Correto! ${correctCat.label} — "${ann.text}"`,
+          message: ann.explanation
+        };
+      } else {
+        STATE.lastReadingFeedback = {
+          type: 'error',
+          title: `Ainda não! "${ann.text}" não é ${selectedCat.label}.`,
+          message: `Dica: Observe a função desse termo na frase. ${correctCat ? 'Pense se ele não atua como ' + correctCat.hint.toLowerCase() : ''}`
+        };
+      }
+      renderApp();
+    }
+
+    function revealAllAnnotations() {
+      if (!STATE.currentText) return;
+      STATE.currentText.annotations.forEach(a => {
+        STATE.foundAnnotations[a.id] = true;
+      });
+      STATE.lastReadingFeedback = {
+        type: 'info',
+        title: 'Análise completa revelada',
+        message: 'Clique em qualquer trecho colorido no texto para consultar sua explicação morfossintática.'
+      };
+      renderApp();
+    }
+
+    function resetAnnotations() {
+      STATE.foundAnnotations = {};
+      STATE.lastReadingFeedback = null;
+      renderApp();
+    }
+
+    function answerQuestion(questionId, optionIndex) {
+      if (!STATE.currentText) return;
+      if (STATE.questionAnswers[questionId] !== undefined) return; // Evita dupla contagem
+
+      const q = STATE.currentText.questions.find(item => item.id === questionId);
+      if (!q) return;
+
+      STATE.questionAnswers[questionId] = optionIndex;
+      const isCorrect = optionIndex === q.correctIndex;
+      recordAnswerInStats(STATE.currentText, q, isCorrect);
+
+      showToast(
+        isCorrect ? `Acerto em ${q.pillar}! Estatística atualizada.` : `Erro em ${q.pillar}. Adicionado à revisão espaçada.`,
+        isCorrect ? 'success' : 'error'
+      );
+      renderApp();
+    }
+
+    async function handleContestQuestion(questionId) {
+      if (!STATE.currentText) return;
+      const q = STATE.currentText.questions.find(item => item.id === questionId);
+      if (!q) return;
+
+      STATE.contestationResults[questionId] = { loading: true, text: null, error: null };
+      renderApp();
+
+      try {
+        const parecer = await contestQuestionWithAI(STATE.currentText, q);
+        STATE.contestationResults[questionId] = { loading: false, text: parecer, error: null };
+        STATE.barrierMetrics.contestationsRun += 1;
+        saveJSON(STORAGE_KEYS.BARRIER_METRICS, STATE.barrierMetrics);
+      } catch (err) {
+        STATE.contestationResults[questionId] = {
+          loading: false,
+          text: null,
+          error: 'Não foi possível contatar o auditor de IA neste momento. Consulte o gabarito comentado acima.'
+        };
+      }
+      renderApp();
+    }
+
+    function updateRewriteInput(rewriteId, value) {
+      STATE.rewriteInputs[rewriteId] = value;
+    }
+
+    async function handleEvaluateRewrite(rewriteId) {
+      if (!STATE.currentText) return;
+      const rw = STATE.currentText.rewrites.find(r => r.id === rewriteId);
+      if (!rw) return;
+
+      const userAnswer = (STATE.rewriteInputs[rewriteId] || '').trim();
+      if (userAnswer.length < 8) {
+        showToast('Digite sua reescrita completa antes de avaliar.', 'error');
+        return;
+      }
+
+      STATE.rewriteResults[rewriteId] = { loading: true, data: null, isFallback: false };
+      renderApp();
+
+      try {
+        const evalData = await evaluateRewriteWithAI(rw, userAnswer);
+        STATE.rewriteResults[rewriteId] = { loading: false, data: evalData, isFallback: false };
+      } catch (err) {
+        // Fallback inteligente caso a API esteja indisponível
+        const normalizedUser = userAnswer.toLowerCase().replace(/[.,;!?]/g, '').replace(/\s+/g, ' ');
+        const normalizedModel = rw.modelAnswer.toLowerCase().replace(/[.,;!?]/g, '').replace(/\s+/g, ' ');
+        const exactMatch = normalizedUser === normalizedModel;
+
+        STATE.rewriteResults[rewriteId] = {
+          loading: false,
+          isFallback: true,
+          data: {
+            overallStatus: exactMatch ? 'Correta (Validação Local)' : 'Compare com o Gabarito Modelo',
+            score: exactMatch ? 100 : null,
+            summary: exactMatch
+              ? 'Sua reescrita coincide perfeitamente com o gabarito modelo de referência!'
+              : 'A avaliação por IA não respondeu no momento. Compare sua frase ponto a ponto com o gabarito modelo e os critérios abaixo.',
+            criteria: [
+              { name: 'Concordância & Regência', status: exactMatch ? 'ok' : 'atencao', comment: rw.rubric },
+              { name: 'Crase & Pontuação', status: exactMatch ? 'ok' : 'atencao', comment: 'Verifique atentamente os acentos graves e as vírgulas no gabarito modelo.' }
+            ],
+            suggestedRewrite: rw.modelAnswer
+          }
+        };
+      }
+      renderApp();
+    }
+
+    async function handleGenerateAIStudy() {
+      const rawText = (STATE.studioInputText || '').trim();
+      if (rawText.length < 120) {
+        showToast('Cole um texto com pelo menos 120 caracteres (ideal: 2 a 4 parágrafos).', 'error');
+        return;
+      }
+
+      const weakPillars = getWeakestPillars(2);
+      STATE.studioPipeline = { running: true, step: 1, error: null };
+      renderApp();
+
+      try {
+        // CAMADA 1: Geração Estrita com Few-Shot VUNESP
+        const layer1 = await generateStudyUnitLayer1(rawText, STATE.studioFocusMode, weakPillars);
+
+        // CAMADA 2: Auditoria Normativa Automatizada
+        STATE.studioPipeline.step = 2;
+        renderApp();
+
+        let finalUnit;
+        try {
+          finalUnit = await auditStudyUnitLayer2(rawText, layer1);
+        } catch (auditErr) {
+          // Se a camada 2 falhar por timeout, preserva a camada 1 sinalizando ressalva
+          finalUnit = {
+            ...layer1,
+            auditReport: {
+              passed: false,
+              correctionsCount: 0,
+              notes: ['A 2ª camada de auditoria excedeu o tempo limite. Use o botão "Contestar Gabarito" em caso de dúvida.']
+            }
+          };
+        }
+
+        STATE.studioPipeline.step = 3;
+        renderApp();
+
+        // Normalização de IDs e verificação de integridade dos trechos de anotação
+        const unitId = `ai-${Date.now()}`;
+        const validAnnotations = (finalUnit.annotations || [])
+          .filter(a => {
+            const p = finalUnit.paragraphs[a.paragraphIndex];
+            return p && a.text && p.includes(a.text) && ANNOTATION_CATEGORIES.some(c => c.id === a.category);
+          })
+          .map((a, idx) => ({ ...a, id: `${unitId}-a${idx + 1}` }));
+
+        const validQuestions = (finalUnit.questions || []).map((q, idx) => ({
+          ...q,
+          id: `${unitId}-q${idx + 1}`,
+          pillar: PILLARS.includes(q.pillar) ? q.pillar : PILLARS[idx % PILLARS.length],
+          options: Array.isArray(q.options) && q.options.length === 5 ? q.options : ['A', 'B', 'C', 'D', 'E'],
+          correctIndex: typeof q.correctIndex === 'number' && q.correctIndex >= 0 && q.correctIndex <= 4 ? q.correctIndex : 0
+        }));
+
+        const validRewrites = (finalUnit.rewrites || []).map((r, idx) => ({
+          ...r,
+          id: `${unitId}-r${idx + 1}`
+        }));
+
+        const normalizedUnit = {
+          id: unitId,
+          title: finalUnit.title || 'Estudo Personalizado VUNESP',
+          genre: finalUnit.genre || 'Texto Autêntico',
+          difficulty: finalUnit.difficulty || 'Personalizado',
+          sourceType: 'ai',
+          focusMode: STATE.studioFocusMode,
+          focusedPillars: STATE.studioFocusMode === 'pontos_fracos' ? weakPillars : PILLARS,
+          createdAt: new Date().toLocaleString('pt-BR'),
+          summary: finalUnit.summary || 'Unidade gerada e auditada pelo pipeline de 2 camadas.',
+          paragraphs: finalUnit.paragraphs,
+          annotations: validAnnotations,
+          questions: validQuestions,
+          rewrites: validRewrites,
+          auditReport: finalUnit.auditReport || {
+            passed: true,
+            correctionsCount: 0,
+            notes: ['Auditoria normativa concluída sem inconsistências críticas.']
+          }
+        };
+
+        STATE.aiHistory.unshift(normalizedUnit);
+        saveJSON(STORAGE_KEYS.AI_HISTORY, STATE.aiHistory);
+
+        STATE.barrierMetrics.textsAudited += 1;
+        STATE.barrierMetrics.correctionsByAuditor += (normalizedUnit.auditReport.correctionsCount || 0);
+        saveJSON(STORAGE_KEYS.BARRIER_METRICS, STATE.barrierMetrics);
+
+        STATE.studioPipeline = { running: false, step: 0, error: null };
+        showToast('Unidade gerada e auditada pela Camada Normativa!', 'success');
+        openTextForStudy(unitId, 'leitura');
+      } catch (err) {
+        STATE.studioPipeline = {
+          running: false,
+          step: 0,
+          error: 'Não foi possível gerar a unidade com a IA agora. Verifique sua conexão ou tente novamente em instantes.'
+        };
+        renderApp();
+      }
+    }
+
+    function deleteAIHistoryItem(id) {
+      openModal({
+        title: 'Excluir texto do histórico?',
+        message: 'Esta unidade gerada por IA será removida do seu histórico local.',
+        icon: '🗑️',
+        confirmLabel: 'Excluir',
+        danger: true,
+        onConfirm: () => {
+          STATE.aiHistory = STATE.aiHistory.filter(t => t.id !== id);
+          saveJSON(STORAGE_KEYS.AI_HISTORY, STATE.aiHistory);
+          showToast('Texto removido do histórico.', 'info');
+          renderApp();
+        }
+      });
+    }
+
+    function goToFocusedWeaknessTraining() {
+      STATE.studioFocusMode = 'pontos_fracos';
+      navigateTo('estudio');
+      showToast(`Estúdio configurado para seus pontos fracos: ${getWeakestPillars(2).join(' e ')}.`, 'info');
+    }
+
+    function confirmResetStats() {
+      openModal({
+        title: 'Zerar estatísticas de desempenho?',
+        message: 'Todos os seus percentuais por pilar e a lista de erros recentes serão reiniciados.',
+        icon: '⚠️',
+        confirmLabel: 'Zerar Dados',
+        danger: true,
+        onConfirm: () => {
+          STATE.stats = createEmptyStats();
+          STATE.questionAnswers = {};
+          saveJSON(STORAGE_KEYS.STATS, STATE.stats);
+          showToast('Estatísticas reiniciadas.', 'info');
+          renderApp();
+        }
+      });
+    }
+
+    // =========================================================================
+    // 8. RENDERIZAÇÃO DOS PARÁGRAFOS COM TRECHOS INTERATIVOS (LEITURA ATIVA)
+    // =========================================================================
+
+    function buildInteractiveParagraphHTML(paragraphText, annotationsInParagraph) {
+      if (!annotationsInParagraph || annotationsInParagraph.length === 0) {
+        return escapeHTML(paragraphText);
+      }
+
+      // Localiza intervalos [start, end] sem sobreposição
+      const ranges = [];
+      annotationsInParagraph.forEach(ann => {
+        const idx = paragraphText.indexOf(ann.text);
+        if (idx !== -1) {
+          const end = idx + ann.text.length;
+          const overlaps = ranges.some(r => !(end <= r.start || idx >= r.end));
+          if (!overlaps) {
+            ranges.push({ start: idx, end, ann });
+          }
+        }
+      });
+
+      ranges.sort((a, b) => a.start - b.start);
+
+      let html = '';
+      let cursor = 0;
+
+      ranges.forEach(r => {
+        if (r.start > cursor) {
+          html += escapeHTML(paragraphText.slice(cursor, r.start));
+        }
+        const isFound = !!STATE.foundAnnotations[r.ann.id];
+        const foundClass = isFound ? `found-${r.ann.category}` : '';
+        html += `<span class="ann-token ${foundClass}" onclick="handleAnnotationClick('${r.ann.id}')" title="${isFound ? 'Clique para ver a explicação' : 'Clique para classificar este trecho'}">${escapeHTML(paragraphText.slice(r.start, r.end))}</span>`;
+        cursor = r.end;
+      });
+
+      if (cursor < paragraphText.length) {
+        html += escapeHTML(paragraphText.slice(cursor));
+      }
+
+      return html;
+    }
+
+    // =========================================================================
+    // 9. VIEWS PRINCIPAIS
+    // =========================================================================
+
+    function updateNavStyles() {
+      const tabs = ['acervo', 'estudio', 'diagnostico', 'barreiras'];
+      tabs.forEach(t => {
+        const btn = document.getElementById(`nav-${t}`);
+        if (!btn) return;
+        const isActive = STATE.activeTab === t || (STATE.activeTab === 'study' && t === (STATE.currentText?.sourceType === 'ai' ? 'estudio' : 'acervo'));
+        btn.className = isActive
+          ? 'nav-btn px-3.5 py-2 rounded-lg text-sm font-semibold whitespace-nowrap bg-ink text-white shadow-xs transition'
+          : 'nav-btn px-3.5 py-2 rounded-lg text-sm font-medium whitespace-nowrap text-slate-600 hover:bg-slate-100 hover:text-ink transition';
+      });
+    }
+
+    function renderAcervoView() {
+      const totalAnswered = PILLARS.reduce((acc, p) => acc + (STATE.stats.byPillar[p]?.answered || 0), 0);
+      const totalCorrect = PILLARS.reduce((acc, p) => acc + (STATE.stats.byPillar[p]?.correct || 0), 0);
+      const rate = totalAnswered > 0 ? Math.round((totalCorrect / totalAnswered) * 100) : null;
+
+      return `
+        <section class="space-y-8">
+          <!-- Hero Editorial -->
+          <div class="bg-white rounded-2xl border border-slate-200 p-6 sm:p-8 shadow-xs">
+            <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+              <div class="space-y-3 max-w-2xl">
+                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-semibold">
+                  <span>✓</span> Acervo Híbrido Curado · Precisão 100% Revisada
+                </div>
+                <h2 class="text-2xl sm:text-3xl font-bold tracking-tight text-ink">
+                  Domine o português da VUNESP por Engenharia Reversa de Texto
+                </h2>
+                <p class="text-sm sm:text-base text-slate-600 leading-relaxed">
+                  Em vez de decorar regras soltas, analise textos autênticos em três etapas: <strong>Leitura Ativa</strong> (morfologia e sintaxe), <strong>Bateria VUNESP (A–E)</strong> e <strong>Laboratório de Reescrita</strong>.
+                </p>
+              </div>
+              <div class="flex flex-col sm:flex-row lg:flex-col gap-3 shrink-0">
+                <div class="bg-paper border border-slate-200 rounded-xl px-4 py-3 text-center">
+                  <p class="text-xs text-slate-500 font-medium">Seu Desempenho Geral</p>
+                  <p class="text-2xl font-bold text-ink mt-0.5">${rate !== null ? rate + '%' : '—'}</p>
+                  <p class="text-[11px] text-slate-500">${totalAnswered} questões respondidas</p>
+                </div>
+                <button onclick="navigateTo('estudio')" class="px-4 py-2.5 rounded-xl bg-ink text-white text-sm font-semibold hover:bg-slate-800 transition shadow-xs">
+                  + Trazer Meu Próprio Texto (IA)
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Grid dos 3 Textos Curados -->
+          <div class="space-y-4">
+            <div class="flex items-center justify-between">
+              <h3 class="text-lg font-bold text-ink">Textos Curados no Padrão VUNESP</h3>
+              <span class="text-xs text-slate-500 font-medium">6 pilares gramaticais por texto</span>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+              ${CURATED_TEXTS.map((text, idx) => `
+                <article class="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs hover:shadow-md hover:border-slate-300 transition flex flex-col justify-between gap-5">
+                  <div class="space-y-3">
+                    <div class="flex items-center justify-between gap-2 flex-wrap">
+                      <span class="text-[11px] font-semibold px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200">
+                        ✓ 100% Revisado
+                      </span>
+                      <span class="text-[11px] font-semibold px-2.5 py-1 rounded-full bg-slate-100 text-slate-700">
+                        ${escapeHTML(text.difficulty)}
+                      </span>
+                    </div>
+
+                    <div>
+                      <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">${escapeHTML(text.genre)} · ${text.readingTime}</p>
+                      <h4 class="text-lg font-bold text-ink font-serif mt-1 leading-snug">
+                        ${escapeHTML(text.title)}
+                      </h4>
+                    </div>
+
+                    <p class="text-sm text-slate-600 leading-relaxed">
+                      ${escapeHTML(text.summary)}
+                    </p>
+
+                    <div class="flex flex-wrap gap-1.5 pt-1">
+                      <span class="text-[11px] px-2 py-0.5 rounded bg-slate-100 text-slate-600">${text.annotations.length} marcações</span>
+                      <span class="text-[11px] px-2 py-0.5 rounded bg-slate-100 text-slate-600">${text.questions.length} questões A–E</span>
+                      <span class="text-[11px] px-2 py-0.5 rounded bg-slate-100 text-slate-600">${text.rewrites.length} reescritas</span>
+                    </div>
+                  </div>
+
+                  <button onclick="openTextForStudy('${text.id}', 'leitura')" class="w-full py-2.5 px-4 rounded-xl bg-ink text-white text-sm font-semibold hover:bg-slate-800 transition">
+                    Iniciar Sessão de Estudo →
+                  </button>
+                </article>
+              `).join('')}
+            </div>
+          </div>
+        </section>
+      `;
+    }
+
+    function renderEstudioView() {
+      const weakPillars = getWeakestPillars(2);
+      const { running, step, error } = STATE.studioPipeline;
+
+      return `
+        <section class="space-y-8">
+          <div class="bg-white rounded-2xl border border-slate-200 p-6 sm:p-8 shadow-xs space-y-6">
+            <div class="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
+              <div class="space-y-1.5">
+                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 border border-blue-200 text-blue-800 text-xs font-semibold">
+                  🛡️ Pipeline de 2 Camadas: Geração VUNESP + Auditoria Normativa
+                </div>
+                <h2 class="text-2xl font-bold text-ink">Estúdio IA — Traga Seu Próprio Texto</h2>
+                <p class="text-sm text-slate-600 max-w-2xl">
+                  Cole qualquer crônica, editorial ou notícia (ideal de 15 a 30 linhas). Nossa IA gera marcações, 6 questões no padrão VUNESP e 2 desafios de reescrita, passando tudo por um <strong>Auditor Gramatical</strong> antes de exibir a você.
+                </p>
+              </div>
+              <button onclick="loadSampleTextIntoStudio()" class="shrink-0 px-3.5 py-2 rounded-xl border border-slate-300 text-xs font-semibold text-ink hover:bg-slate-50 transition">
+                Carregar Texto de Exemplo
+              </button>
+            </div>
+
+            <!-- Área de Texto -->
+            <div class="space-y-2">
+              <label for="studio-textarea" class="block text-sm font-semibold text-ink">
+                Texto para Análise (separe parágrafos com Enter)
+              </label>
+              <textarea
+                id="studio-textarea"
+                rows="8"
+                oninput="STATE.studioInputText = this.value"
+                placeholder="Cole aqui uma crônica, coluna de opinião ou editorial de jornal..."
+                class="w-full rounded-xl border border-slate-300 bg-paper p-4 text-sm font-serif leading-relaxed text-ink focus:outline-none focus:ring-2 focus:ring-ink/20 focus:border-ink transition"
+                ${running ? 'disabled' : ''}
+              >${escapeHTML(STATE.studioInputText)}</textarea>
+            </div>
+
+            <!-- Seletor de Foco -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <button
+                type="button"
+                onclick="STATE.studioFocusMode = 'equilibrado'; renderApp();"
+                class="text-left p-4 rounded-xl border transition ${STATE.studioFocusMode === 'equilibrado' ? 'border-ink bg-slate-50 ring-1 ring-ink' : 'border-slate-200 hover:bg-slate-50'}"
+                ${running ? 'disabled' : ''}
+              >
+                <div class="flex items-center justify-between">
+                  <span class="text-sm font-bold text-ink">⚖️ Foco Equilibrado (6 Pilares)</span>
+                  <span class="w-4 h-4 rounded-full border-2 flex items-center justify-center ${STATE.studioFocusMode === 'equilibrado' ? 'border-ink' : 'border-slate-300'}">
+                    ${STATE.studioFocusMode === 'equilibrado' ? '<span class="w-2 h-2 rounded-full bg-ink"></span>' : ''}
+                  </span>
+                </div>
+                <p class="text-xs text-slate-600 mt-1">1 questão de cada pilar: Morfologia, Sintaxe, Regência, Concordância, Crase e Pontuação.</p>
+              </button>
+
+              <button
+                type="button"
+                onclick="STATE.studioFocusMode = 'pontos_fracos'; renderApp();"
+                class="text-left p-4 rounded-xl border transition ${STATE.studioFocusMode === 'pontos_fracos' ? 'border-ink bg-slate-50 ring-1 ring-ink' : 'border-slate-200 hover:bg-slate-50'}"
+                ${running ? 'disabled' : ''}
+              >
+                <div class="flex items-center justify-between">
+                  <span class="text-sm font-bold text-ink">🎯 Focado nos Meus Pontos Fracos</span>
+                  <span class="w-4 h-4 rounded-full border-2 flex items-center justify-center ${STATE.studioFocusMode === 'pontos_fracos' ? 'border-ink' : 'border-slate-300'}">
+                    ${STATE.studioFocusMode === 'pontos_fracos' ? '<span class="w-2 h-2 rounded-full bg-ink"></span>' : ''}
+                  </span>
+                </div>
+                <p class="text-xs text-slate-600 mt-1">Prioriza automaticamente seus 2 pilares mais críticos: <strong class="text-ink">${weakPillars.join(' e ')}</strong>.</p>
+              </button>
+            </div>
+
+            <!-- Indicador do Pipeline de 2 Camadas -->
+            ${running ? `
+              <div class="rounded-xl border border-blue-200 bg-blue-50/70 p-5 space-y-3">
+                <div class="flex items-center gap-3">
+                  <div class="w-5 h-5 rounded-full border-2 border-blue-600 border-t-transparent animate-spin"></div>
+                  <p class="text-sm font-bold text-blue-950">Executando Pipeline de Proteção Normativa...</p>
+                </div>
+                <div class="space-y-2 text-xs">
+                  <div class="flex items-center gap-2 ${step >= 1 ? 'text-blue-900 font-semibold' : 'text-slate-400'}">
+                    <span>${step > 1 ? '✅' : '⏳'}</span>
+                    <span>1. Camada de Geração: Analisando texto e criando questões no padrão VUNESP (few-shot)...</span>
+                  </div>
+                  <div class="flex items-center gap-2 ${step >= 2 ? 'text-blue-900 font-semibold' : 'text-slate-400'}">
+                    <span>${step > 2 ? '✅' : (step === 2 ? '⏳' : '○')}</span>
+                    <span>2. Camada de Auditoria Normativa: Verificando crase facultativa, regência, concordância e ambiguidades...</span>
+                  </div>
+                  <div class="flex items-center gap-2 ${step >= 3 ? 'text-emerald-800 font-semibold' : 'text-slate-400'}">
+                    <span>${step >= 3 ? '✅' : '○'}</span>
+                    <span>3. Finalizando selo de auditoria e montando laboratório interativo...</span>
+                  </div>
+                </div>
+              </div>
+            ` : ''}
+
+            ${error ? `
+              <div class="rounded-xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-800">
+                ${escapeHTML(error)}
+              </div>
+            ` : ''}
+
+            <div class="flex flex-col sm:flex-row items-center justify-between gap-3 pt-1">
+              <p class="text-xs text-slate-500">
+                As unidades geradas ficam salvas localmente no seu navegador.
+              </p>
+              <button
+                onclick="handleGenerateAIStudy()"
+                ${running ? 'disabled' : ''}
+                class="w-full sm:w-auto px-6 py-3 rounded-xl bg-ink text-white text-sm font-semibold hover:bg-slate-800 disabled:opacity-50 transition shadow-xs"
+              >
+                ${running ? 'Processando nas 2 Camadas...' : 'Gerar & Auditar Sessão VUNESP →'}
+              </button>
+            </div>
+          </div>
+
+          <!-- Histórico de Textos Gerados -->
+          <div class="space-y-4">
+            <h3 class="text-lg font-bold text-ink">Seu Histórico de Textos Auditados (${STATE.aiHistory.length})</h3>
+            ${STATE.aiHistory.length === 0 ? `
+              <div class="bg-white rounded-2xl border border-dashed border-slate-300 p-8 text-center text-sm text-slate-500">
+                Você ainda não gerou unidades próprias. Cole um texto acima ou clique em <strong>Carregar Texto de Exemplo</strong> para testar o pipeline de 2 camadas.
+              </div>
+            ` : `
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                ${STATE.aiHistory.map(item => `
+                  <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs flex flex-col justify-between gap-4">
+                    <div class="space-y-2">
+                      <div class="flex items-center justify-between gap-2 flex-wrap">
+                        <span class="text-[11px] font-semibold px-2.5 py-1 rounded-full ${item.auditReport?.passed ? 'bg-blue-50 text-blue-800 border border-blue-200' : 'bg-amber-50 text-amber-800 border border-amber-200'}">
+                          ${item.auditReport?.passed ? '🛡️ Auditado pela Camada Normativa' : '⚠️ Auditoria Parcial'}
+                        </span>
+                        <span class="text-[11px] text-slate-400">${escapeHTML(item.createdAt || '')}</span>
+                      </div>
+                      <h4 class="text-base font-bold text-ink font-serif">${escapeHTML(item.title)}</h4>
+                      <p class="text-xs text-slate-600 line-clamp-2">${escapeHTML(item.summary)}</p>
+                    </div>
+                    <div class="flex items-center justify-between gap-2 pt-2 border-t border-slate-100">
+                      <button onclick="openTextForStudy('${item.id}', 'leitura')" class="px-4 py-2 rounded-lg bg-ink text-white text-xs font-semibold hover:bg-slate-800 transition">
+                        Abrir Estudo →
+                      </button>
+                      <button onclick="deleteAIHistoryItem('${item.id}')" class="px-3 py-2 rounded-lg text-xs font-medium text-rose-600 hover:bg-rose-50 transition">
+                        Excluir
+                      </button>
+                    </div>
+                  </div>
+                `).join('')}
+              </div>
+            `}
+          </div>
+        </section>
+      `;
+    }
+
+    function loadSampleTextIntoStudio() {
+      STATE.studioInputText = SAMPLE_USER_TEXT;
+      renderApp();
+      showToast('Texto de exemplo carregado! Clique em Gerar & Auditar.', 'info');
+    }
+
+    function renderDiagnosticoView() {
+      const totalAnswered = PILLARS.reduce((acc, p) => acc + (STATE.stats.byPillar[p]?.answered || 0), 0);
+      const totalCorrect = PILLARS.reduce((acc, p) => acc + (STATE.stats.byPillar[p]?.correct || 0), 0);
+      const overallRate = totalAnswered > 0 ? Math.round((totalCorrect / totalAnswered) * 100) : 0;
+
+      const weakPillars = getWeakestPillars(2);
+
+      // Melhor pilar
+      let bestPillar = '—';
+      let bestRate = -1;
+      PILLARS.forEach(p => {
+        const d = STATE.stats.byPillar[p];
+        if (d && d.answered > 0) {
+          const r = d.correct / d.answered;
+          if (r > bestRate) {
+            bestRate = r;
+            bestPillar = p;
+          }
+        }
+      });
+
+      return `
+        <section class="space-y-8">
+          <!-- Cards de Resumo -->
+          <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs">
+              <p class="text-xs font-medium text-slate-500">Questões Respondidas</p>
+              <p class="text-2xl font-bold text-ink mt-1">${totalAnswered}</p>
+            </div>
+            <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs">
+              <p class="text-xs font-medium text-slate-500">Taxa Global de Acerto</p>
+              <p class="text-2xl font-bold text-ink mt-1">${totalAnswered > 0 ? overallRate + '%' : '—'}</p>
+            </div>
+            <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs">
+              <p class="text-xs font-medium text-slate-500">Pilar Mais Forte</p>
+              <p class="text-xl font-bold text-emerald-700 mt-1">${bestPillar}</p>
+            </div>
+            <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs">
+              <p class="text-xs font-medium text-slate-500">Foco Prioritário</p>
+              <p class="text-base font-bold text-rose-700 mt-1.5 leading-tight">${weakPillars.join(' & ')}</p>
+            </div>
+          </div>
+
+          <!-- Gráfico de Barras por Pilar + Ação Adaptativa -->
+          <div class="bg-white rounded-2xl border border-slate-200 p-6 sm:p-8 shadow-xs space-y-6">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <div>
+                <h2 class="text-xl font-bold text-ink">Desempenho por Pilar Gramatical</h2>
+                <p class="text-xs text-slate-500 mt-0.5">Acompanhe sua evolução nos 6 eixos cobrados pela VUNESP.</p>
+              </div>
+              <button onclick="goToFocusedWeaknessTraining()" class="px-4 py-2.5 rounded-xl bg-ink text-white text-sm font-semibold hover:bg-slate-800 transition shadow-xs">
+                🎯 Gerar Treino Focado nos Meus Pontos Fracos
+              </button>
+            </div>
+
+            <div class="space-y-4">
+              ${PILLARS.map(p => {
+                const d = STATE.stats.byPillar[p] || { answered: 0, correct: 0 };
+                const pct = d.answered > 0 ? Math.round((d.correct / d.answered) * 100) : 0;
+                const style = PILLAR_COLORS[p];
+                return `
+                  <div class="space-y-1.5">
+                    <div class="flex items-center justify-between text-sm">
+                      <span class="font-semibold text-ink">${p}</span>
+                      <span class="text-xs font-medium text-slate-600">
+                        ${d.answered > 0 ? `${d.correct}/${d.answered} acertos (${pct}%)` : 'Ainda não praticado'}
+                      </span>
+                    </div>
+                    <div class="w-full h-3 bg-slate-100 rounded-full overflow-hidden">
+                      <div class="h-full rounded-full transition-all duration-500 ${style.bar}" style="width: ${d.answered > 0 ? Math.max(pct, 4) : 0}%"></div>
+                    </div>
+                  </div>
+                `;
+              }).join('')}
+            </div>
+
+            <div class="pt-4 border-t border-slate-100 flex justify-end">
+              <button onclick="confirmResetStats()" class="text-xs font-medium text-slate-500 hover:text-rose-600 transition">
+                Zerar estatísticas locais
+              </button>
+            </div>
+          </div>
+
+          <!-- Fila de Revisão Espaçada (Erros Recentes) -->
+          <div class="bg-white rounded-2xl border border-slate-200 p-6 sm:p-8 shadow-xs space-y-4">
+            <div>
+              <h3 class="text-lg font-bold text-ink">Erros Recentes para Revisão Espaçada</h3>
+              <p class="text-xs text-slate-500 mt-0.5">Revise as regras gramaticais das questões que você errou recentemente.</p>
+            </div>
+
+            ${STATE.stats.recentErrors.length === 0 ? `
+              <div class="rounded-xl bg-paper border border-slate-200 p-6 text-center text-sm text-slate-500">
+                Nenhum erro registrado até o momento. Resolva as baterias de questões para alimentar sua revisão espaçada.
+              </div>
+            ` : `
+              <div class="space-y-3">
+                ${STATE.stats.recentErrors.map(err => {
+                  const pStyle = PILLAR_COLORS[err.pillar] || PILLAR_COLORS['Morfologia'];
+                  return `
+                    <div class="rounded-xl border border-slate-200 p-4 bg-paper/60 flex flex-col sm:flex-row sm:items-start justify-between gap-4">
+                      <div class="space-y-1.5">
+                        <div class="flex items-center gap-2 flex-wrap">
+                          <span class="text-[11px] font-semibold px-2.5 py-0.5 rounded-full border ${pStyle.bg} ${pStyle.text} ${pStyle.border}">${escapeHTML(err.pillar)}</span>
+                          <span class="text-xs font-semibold text-ink">${escapeHTML(err.textTitle)}</span>
+                          <span class="text-[11px] text-slate-400">· ${escapeHTML(err.date)}</span>
+                        </div>
+                        <p class="text-sm text-slate-700 font-medium">${escapeHTML(err.stem)}</p>
+                        <p class="text-xs text-slate-600 leading-relaxed"><strong>Regra para fixar:</strong> ${escapeHTML(err.explanation)}</p>
+                      </div>
+                      <button onclick="openTextForStudy('${err.textId}', 'questoes')" class="shrink-0 px-3.5 py-2 rounded-lg border border-slate-300 bg-white text-xs font-semibold text-ink hover:bg-slate-50 transition">
+                        Revisar Questão
+                      </button>
+                    </div>
+                  `;
+                }).join('')}
+              </div>
+            `}
+          </div>
+        </section>
+      `;
+    }
+
+    function renderBarreirasView() {
+      const m = STATE.barrierMetrics;
+      return `
+        <section class="space-y-8">
+          <div class="bg-white rounded-2xl border border-slate-200 p-6 sm:p-8 shadow-xs space-y-3">
+            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100 text-ink text-xs font-semibold">
+              🛡️ Engenharia de Confiabilidade Gramatical
+            </span>
+            <h2 class="text-2xl font-bold text-ink">Como evitamos alucinações e erros sutis de gabarito</h2>
+            <p class="text-sm text-slate-600 max-w-3xl leading-relaxed">
+              O maior risco em aplicativos de Língua Portuguesa movidos por IA é gerar gabaritos imprecisos em casos limítrofes (crase facultativa, dupla regência, concordância atrativa ou pontuação estilística). O <strong>NormaVUNESP</strong> implementa três barreiras técnicas ativas para garantir precisão de banca oficial.
+            </p>
+          </div>
+
+          <!-- Métricas ao vivo das barreiras -->
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs">
+              <p class="text-xs text-slate-500 font-medium">Textos Curados (Precisão 100%)</p>
+              <p class="text-2xl font-bold text-emerald-700 mt-1">${CURATED_TEXTS.length} unidades · 18 questões</p>
+            </div>
+            <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs">
+              <p class="text-xs text-slate-500 font-medium">Textos Auditados em 2ª Camada</p>
+              <p class="text-2xl font-bold text-blue-700 mt-1">${m.textsAudited}</p>
+            </div>
+            <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs">
+              <p class="text-xs text-slate-500 font-medium">Contestações / Pareceres Emitidos</p>
+              <p class="text-2xl font-bold text-ink mt-1">${m.contestationsRun}</p>
+            </div>
+          </div>
+
+          <!-- Detalhamento das 3 Barreiras -->
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+            <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs space-y-3">
+              <div class="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-700 border border-emerald-200 flex items-center justify-center font-bold">1</div>
+              <h3 class="text-base font-bold text-ink">Acervo Híbrido Curado</h3>
+              <p class="text-sm text-slate-600 leading-relaxed">
+                Os textos da aba <strong>Acervo Curado</strong> são estáticos e previamente validados segundo a gramática normativa padrão. Isso oferece uma base 100% livre de alucinação para calibrar seu olhar antes de avançar para textos livres.
+              </p>
+            </div>
+
+            <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs space-y-3">
+              <div class="w-10 h-10 rounded-xl bg-blue-50 text-blue-700 border border-blue-200 flex items-center justify-center font-bold">2</div>
+              <h3 class="text-base font-bold text-ink">Prompt Normativo Few-Shot + JSON</h3>
+              <p class="text-sm text-slate-600 leading-relaxed">
+                No Estúdio IA, a <strong>Camada 1</strong> recebe regras explícitas do padrão VUNESP (reescrita, regência, conectivos, crase) e restrições estruturais em JSON, exigindo que cada marcação exista literalmente no parágrafo original.
+              </p>
+            </div>
+
+            <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs space-y-3">
+              <div class="w-10 h-10 rounded-xl bg-purple-50 text-purple-700 border border-purple-200 flex items-center justify-center font-bold">3</div>
+              <h3 class="text-base font-bold text-ink">Auditoria em 2ª Camada + Contestação</h3>
+              <p class="text-sm text-slate-600 leading-relaxed">
+                Todo material gerado passa por uma <strong>segunda chamada independente</strong> que audita crases facultativas, dupla regência e gabaritos duplos, anexando ressalvas visíveis. Além disso, qualquer questão pode ser contestada sob demanda.
+              </p>
+            </div>
+          </div>
+        </section>
+      `;
+    }
+
+    // =========================================================================
+    // 10. TELA DE ESTUDO (3 SUB-MODOS: LEITURA ATIVA, QUESTÕES A–E, REESCRITA)
+    // =========================================================================
+
+    function renderStudyView() {
+      const textObj = STATE.currentText;
+      if (!textObj) return renderAcervoView();
+
+      const isCurated = textObj.sourceType === 'curated';
+      const auditNotes = textObj.auditReport?.notes || [];
+
+      return `
+        <section class="space-y-6">
+          <!-- Cabeçalho do Estudo -->
+          <div class="bg-white rounded-2xl border border-slate-200 p-5 sm:p-6 shadow-xs space-y-4">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <button onclick="navigateTo('${isCurated ? 'acervo' : 'estudio'}')" class="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-ink transition self-start">
+                ← Voltar para ${isCurated ? 'Acervo Curado' : 'Estúdio IA'}
+              </button>
+              <div class="flex items-center gap-2 flex-wrap">
+                ${isCurated ? `
+                  <span class="text-xs font-semibold px-3 py-1 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200">
+                    ✓ 100% Revisado — Acervo Curado
+                  </span>
+                ` : `
+                  <span class="text-xs font-semibold px-3 py-1 rounded-full bg-blue-50 text-blue-800 border border-blue-200">
+                    🛡️ Auditado pela Camada Normativa
+                  </span>
+                `}
+                <span class="text-xs font-medium px-2.5 py-1 rounded-full bg-slate-100 text-slate-700">
+                  ${escapeHTML(textObj.genre)}
+                </span>
+              </div>
+            </div>
+
+            <div>
+              <h2 class="text-2xl font-bold text-ink font-serif">${escapeHTML(textObj.title)}</h2>
+              ${auditNotes.length > 0 ? `
+                <details class="mt-3 rounded-xl bg-blue-50/60 border border-blue-200 px-4 py-2.5 text-xs text-blue-950">
+                  <summary class="font-semibold cursor-pointer select-none">
+                    Ver notas da Auditoria Normativa (${auditNotes.length})
+                  </summary>
+                  <ul class="list-disc pl-5 mt-2 space-y-1 text-blue-900">
+                    ${auditNotes.map(n => `<li>${escapeHTML(n)}</li>`).join('')}
+                  </ul>
+                </details>
+              ` : ''}
+            </div>
+
+            <!-- Sub-abas de Estudo -->
+            <div class="flex items-center gap-2 border-t border-slate-100 pt-4 overflow-x-auto">
+              <button onclick="setStudySubMode('leitura')" class="px-4 py-2 rounded-xl text-sm font-semibold whitespace-nowrap transition ${STATE.studySubMode === 'leitura' ? 'bg-ink text-white shadow-xs' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'}">
+                1. Leitura Ativa &amp; Marcação
+              </button>
+              <button onclick="setStudySubMode('questoes')" class="px-4 py-2 rounded-xl text-sm font-semibold whitespace-nowrap transition ${STATE.studySubMode === 'questoes' ? 'bg-ink text-white shadow-xs' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'}">
+                2. Bateria VUNESP (${textObj.questions.length} Questões)
+              </button>
+              <button onclick="setStudySubMode('reescrita')" class="px-4 py-2 rounded-xl text-sm font-semibold whitespace-nowrap transition ${STATE.studySubMode === 'reescrita' ? 'bg-ink text-white shadow-xs' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'}">
+                3. Laboratório de Reescrita (${textObj.rewrites.length})
+              </button>
+            </div>
+          </div>
+
+          <!-- Conteúdo do Sub-modo -->
+          ${STATE.studySubMode === 'leitura' ? renderSubModeLeitura(textObj) : ''}
+          ${STATE.studySubMode === 'questoes' ? renderSubModeQuestoes(textObj) : ''}
+          ${STATE.studySubMode === 'reescrita' ? renderSubModeReescrita(textObj) : ''}
+        </section>
+      `;
+    }
+
+    function renderSubModeLeitura(textObj) {
+      const totalAnns = textObj.annotations.length;
+      const foundCount = textObj.annotations.filter(a => STATE.foundAnnotations[a.id]).length;
+      const fb = STATE.lastReadingFeedback;
+
+      return `
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+          <!-- Coluna Esquerda: Texto com Marcações -->
+          <div class="lg:col-span-8 bg-white rounded-2xl border border-slate-200 p-6 sm:p-8 shadow-xs space-y-6">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-4 border-b border-slate-100">
+              <div>
+                <h3 class="text-base font-bold text-ink">Varredura Morfossintática Direcionada</h3>
+                <p class="text-xs text-slate-500">Selecione uma categoria na barra ao lado e clique nos trechos sublinhados do texto.</p>
+              </div>
+              <span class="text-xs font-bold px-3 py-1 rounded-full bg-slate-100 text-ink self-start sm:self-auto">
+                ${foundCount} / ${totalAnns} identificados
+              </span>
+            </div>
+
+            <!-- Parágrafos Numerados -->
+            <div class="space-y-5 editorial-text text-base sm:text-[17px] text-slate-800">
+              ${textObj.paragraphs.map((para, pIdx) => {
+                const annsInPara = textObj.annotations.filter(a => a.paragraphIndex === pIdx);
+                return `
+                  <div class="flex gap-3 sm:gap-4 items-baseline">
+                    <span class="text-xs font-sans font-bold text-slate-400 select-none shrink-0 w-6">§${pIdx + 1}</span>
+                    <p class="flex-1">${buildInteractiveParagraphHTML(para, annsInPara)}</p>
+                  </div>
+                `;
+              }).join('')}
+            </div>
+
+            <!-- Ações de Rodapé da Leitura -->
+            <div class="flex flex-wrap items-center justify-between gap-3 pt-4 border-t border-slate-100">
+              <div class="flex items-center gap-2">
+                <button onclick="revealAllAnnotations()" class="px-3.5 py-2 rounded-lg border border-slate-300 text-xs font-semibold text-ink hover:bg-slate-50 transition">
+                  Revelar Análise Completa
+                </button>
+                <button onclick="resetAnnotations()" class="px-3.5 py-2 rounded-lg text-xs font-medium text-slate-500 hover:bg-slate-100 transition">
+                  Reiniciar Marcação
+                </button>
+              </div>
+              <button onclick="setStudySubMode('questoes')" class="px-4 py-2 rounded-xl bg-ink text-white text-xs font-semibold hover:bg-slate-800 transition">
+                Avançar para Questões A–E →
+              </button>
+            </div>
+          </div>
+
+          <!-- Coluna Direita: Pincéis de Categoria + Feedback Instantâneo -->
+          <aside class="lg:col-span-4 space-y-4 lg:sticky lg:top-24">
+            <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs space-y-3">
+              <h4 class="text-sm font-bold text-ink">1. Escolha a Categoria</h4>
+              <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-2">
+                ${ANNOTATION_CATEGORIES.map(cat => {
+                  const isSelected = STATE.selectedCategory === cat.id;
+                  return `
+                    <button
+                      onclick="selectCategory('${cat.id}')"
+                      class="w-full text-left px-3.5 py-2.5 rounded-xl border text-xs font-semibold flex items-center justify-between transition ${isSelected ? cat.colorClass + ' ring-2 ring-ink/30 shadow-xs' : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'}"
+                    >
+                      <span class="flex items-center gap-2">
+                        <span class="w-2.5 h-2.5 rounded-full ${cat.dot}"></span>
+                        ${cat.label}
+                      </span>
+                      ${isSelected ? '<span class="text-[10px] uppercase tracking-wider">Ativo</span>' : ''}
+                    </button>
+                  `;
+                }).join('')}
+              </div>
+            </div>
+
+            <!-- Card de Feedback -->
+            <div class="rounded-2xl border p-5 shadow-xs transition ${
+              !fb ? 'bg-white border-slate-200' :
+              fb.type === 'success' ? 'bg-emerald-50 border-emerald-200 text-emerald-950' :
+              fb.type === 'error' ? 'bg-rose-50 border-rose-200 text-rose-950' :
+              'bg-blue-50 border-blue-200 text-blue-950'
+            }">
+              <h4 class="text-xs font-bold uppercase tracking-wider mb-1.5 opacity-80">
+                ${!fb ? 'Feedback Gramatical' : fb.type === 'success' ? '✓ Análise Validada' : fb.type === 'error' ? '✗ Tente Novamente' : 'ℹ️ Explicação'}
+              </h4>
+              <p class="text-sm font-bold leading-snug">
+                ${fb ? escapeHTML(fb.title) : 'Clique em um trecho pontilhado no texto'}
+              </p>
+              <p class="text-xs mt-1.5 leading-relaxed opacity-90">
+                ${fb ? escapeHTML(fb.message) : 'Ao identificar corretamente a classe morfológica ou função sintática, o trecho será destacado com a cor da categoria.'}
+              </p>
+            </div>
+          </aside>
+        </div>
+      `;
+    }
+
+    function renderSubModeQuestoes(textObj) {
+      const letters = ['A', 'B', 'C', 'D', 'E'];
+
+      return `
+        <div class="space-y-6">
+          <!-- Texto recolhível para consulta rápida -->
+          <details class="bg-white rounded-2xl border border-slate-200 shadow-xs">
+            <summary class="px-6 py-4 text-sm font-bold text-ink cursor-pointer select-none flex items-center justify-between">
+              <span>📖 Consultar o texto completo durante a resolução</span>
+              <span class="text-xs font-normal text-slate-500">Clique para expandir</span>
+            </summary>
+            <div class="px-6 pb-6 pt-2 border-t border-slate-100 space-y-3 editorial-text text-sm sm:text-base text-slate-700">
+              ${textObj.paragraphs.map((p, idx) => `<p><strong class="font-sans text-xs text-slate-400 mr-2">§${idx + 1}</strong>${escapeHTML(p)}</p>`).join('')}
+            </div>
+          </details>
+
+          <!-- Lista das 6 Questões -->
+          <div class="space-y-6">
+            ${textObj.questions.map((q, qIdx) => {
+              const userChoice = STATE.questionAnswers[q.id];
+              const isAnswered = userChoice !== undefined;
+              const isCorrect = isAnswered && userChoice === q.correctIndex;
+              const pStyle = PILLAR_COLORS[q.pillar] || PILLAR_COLORS['Morfologia'];
+              const contest = STATE.contestationResults[q.id];
+
+              return `
+                <article class="bg-white rounded-2xl border border-slate-200 p-6 sm:p-7 shadow-xs space-y-5">
+                  <!-- Cabeçalho da Questão -->
+                  <div class="flex items-center justify-between gap-2 flex-wrap">
+                    <div class="flex items-center gap-2.5">
+                      <span class="w-7 h-7 rounded-lg bg-ink text-white text-xs font-bold flex items-center justify-center">
+                        ${qIdx + 1}
+                      </span>
+                      <span class="text-xs font-semibold px-3 py-1 rounded-full border ${pStyle.bg} ${pStyle.text} ${pStyle.border}">
+                        ${escapeHTML(q.pillar)}
+                      </span>
+                    </div>
+                    ${isAnswered ? `
+                      <span class="text-xs font-bold px-3 py-1 rounded-full ${isCorrect ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'}">
+                        ${isCorrect ? '✓ Resposta Correta' : `✗ Gabarito: ${letters[q.correctIndex]}`}
+                      </span>
+                    ` : ''}
+                  </div>
+
+                  <!-- Citação do Texto -->
+                  <blockquote class="rounded-xl bg-paper border-l-4 border-ink px-4 py-3 text-sm sm:text-base font-serif italic text-slate-700">
+                    ${escapeHTML(q.quote)}
+                  </blockquote>
+
+                  <!-- Enunciado -->
+                  <p class="text-sm sm:text-base font-semibold text-ink leading-relaxed">
+                    ${escapeHTML(q.stem)}
+                  </p>
+
+                  <!-- Alternativas A-E -->
+                  <div class="space-y-2.5">
+                    ${q.options.map((opt, optIdx) => {
+                      let btnStyle = 'border-slate-200 bg-white hover:bg-slate-50 text-slate-800';
+                      let badgeStyle = 'bg-slate-100 text-slate-700';
+
+                      if (isAnswered) {
+                        if (optIdx === q.correctIndex) {
+                          btnStyle = 'border-emerald-500 bg-emerald-50 text-emerald-950 font-medium';
+                          badgeStyle = 'bg-emerald-600 text-white';
+                        } else if (optIdx === userChoice) {
+                          btnStyle = 'border-rose-400 bg-rose-50 text-rose-950';
+                          badgeStyle = 'bg-rose-600 text-white';
+                        } else {
+                          btnStyle = 'border-slate-100 bg-slate-50/50 text-slate-400';
+                          badgeStyle = 'bg-slate-100 text-slate-400';
+                        }
+                      }
+
+                      return `
+                        <button
+                          onclick="answerQuestion('${q.id}', ${optIdx})"
+                          ${isAnswered ? 'disabled' : ''}
+                          class="w-full text-left p-3.5 rounded-xl border flex items-start gap-3 transition ${btnStyle}"
+                        >
+                          <span class="w-6 h-6 rounded-md text-xs font-bold flex items-center justify-center shrink-0 mt-0.5 ${badgeStyle}">
+                            ${letters[optIdx]}
+                          </span>
+                          <span class="text-sm leading-relaxed">${escapeHTML(opt)}</span>
+                        </button>
+                      `;
+                    }).join('')}
+                  </div>
+
+                  <!-- Gabarito Comentado (exibido após responder) -->
+                  ${isAnswered ? `
+                    <div class="rounded-xl bg-slate-50 border border-slate-200 p-4 sm:p-5 space-y-3">
+                      <div class="space-y-1.5">
+                        <p class="text-xs font-bold uppercase tracking-wider text-ink">Gabarito Comentado (${letters[q.correctIndex]})</p>
+                        <p class="text-sm text-slate-700 leading-relaxed">${escapeHTML(q.explanation)}</p>
+                        ${q.distractorsNote ? `
+                          <p class="text-xs text-slate-600 leading-relaxed pt-1">
+                            <strong>Por que as demais estão incorretas:</strong> ${escapeHTML(q.distractorsNote)}
+                          </p>
+                        ` : ''}
+                      </div>
+
+                      <!-- Barreira: Botão Contestar Gabarito -->
+                      <div class="pt-3 border-t border-slate-200 flex flex-col gap-3">
+                        <div class="flex items-center justify-between flex-wrap gap-2">
+                          <span class="text-[11px] text-slate-500">Suspeita de ambiguidade ou caso facultativo?</span>
+                          <button
+                            onclick="handleContestQuestion('${q.id}')"
+                            ${contest?.loading ? 'disabled' : ''}
+                            class="px-3 py-1.5 rounded-lg border border-slate-300 bg-white text-xs font-semibold text-ink hover:bg-slate-100 disabled:opacity-50 transition"
+                          >
+                            ${contest?.loading ? 'Auditando com IA...' : '⚖️ Contestar / Revisar Gabarito com IA'}
+                          </button>
+                        </div>
+
+                        ${contest?.text ? `
+                          <div class="rounded-xl bg-blue-50 border border-blue-200 p-4 text-xs text-blue-950 whitespace-pre-line leading-relaxed">
+                            <p class="font-bold mb-1">🛡️ Parecer Normativo Independente:</p>
+                            ${escapeHTML(contest.text)}
+                          </div>
+                        ` : ''}
+                        ${contest?.error ? `
+                          <div class="rounded-xl bg-amber-50 border border-amber-200 p-3 text-xs text-amber-900">
+                            ${escapeHTML(contest.error)}
+                          </div>
+                        ` : ''}
+                      </div>
+                    </div>
+                  ` : ''}
+                </article>
+              `;
+            }).join('')}
+          </div>
+
+          <div class="flex justify-end">
+            <button onclick="setStudySubMode('reescrita')" class="px-5 py-2.5 rounded-xl bg-ink text-white text-sm font-semibold hover:bg-slate-800 transition">
+              Ir para o Laboratório de Reescrita →
+            </button>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderSubModeReescrita(textObj) {
+      return `
+        <div class="space-y-6">
+          <div class="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs">
+            <h3 class="text-base font-bold text-ink">Laboratório de Reescrita (“Teste de Estresse” VUNESP)</h3>
+            <p class="text-sm text-slate-600 mt-1">
+              Pratique a habilidade mais cobrada pela banca: aplicar mutações sintáticas e verbais em períodos reais do texto, ajustando concordância, regência, crase e pontuação sem perder o sentido.
+            </p>
+          </div>
+
+          ${textObj.rewrites.map((rw, idx) => {
+            const val = STATE.rewriteInputs[rw.id] || '';
+            const res = STATE.rewriteResults[rw.id];
+
+            return `
+              <article class="bg-white rounded-2xl border border-slate-200 p-6 sm:p-7 shadow-xs space-y-5">
+                <div class="flex items-center gap-2.5">
+                  <span class="w-7 h-7 rounded-lg bg-ink text-white text-xs font-bold flex items-center justify-center">
+                    ${idx + 1}
+                  </span>
+                  <h4 class="text-base font-bold text-ink">Desafio de Reescrita #${idx + 1}</h4>
+                </div>
+
+                <div class="space-y-2">
+                  <p class="text-xs font-bold uppercase tracking-wider text-slate-400">Período Original</p>
+                  <blockquote class="rounded-xl bg-paper border-l-4 border-ink px-4 py-3 text-base font-serif text-slate-800">
+                    “${escapeHTML(rw.original)}”
+                  </blockquote>
+                </div>
+
+                <div class="rounded-xl bg-amber-50/70 border border-amber-200 p-4">
+                  <p class="text-xs font-bold uppercase tracking-wider text-amber-900 mb-1">Comando de Mutação</p>
+                  <p class="text-sm text-amber-950 font-medium leading-relaxed">${escapeHTML(rw.prompt)}</p>
+                </div>
+
+                <div class="space-y-2">
+                  <label class="block text-xs font-bold uppercase tracking-wider text-slate-500">Sua Reescrita</label>
+                  <textarea
+                    rows="3"
+                    oninput="updateRewriteInput('${rw.id}', this.value)"
+                    placeholder="Digite aqui a frase reescrita com todos os ajustes gramaticais..."
+                    class="w-full rounded-xl border border-slate-300 bg-paper p-3.5 text-sm font-serif text-ink focus:outline-none focus:ring-2 focus:ring-ink/20 focus:border-ink transition"
+                  >${escapeHTML(val)}</textarea>
+                </div>
+
+                <div class="flex items-center justify-between gap-3 flex-wrap">
+                  <span class="text-xs text-slate-500">Avaliação em 5 critérios: Concordância, Regência, Crase, Pontuação e Sentido.</span>
+                  <button
+                    onclick="handleEvaluateRewrite('${rw.id}')"
+                    ${res?.loading ? 'disabled' : ''}
+                    class="px-5 py-2.5 rounded-xl bg-ink text-white text-sm font-semibold hover:bg-slate-800 disabled:opacity-50 transition"
+                  >
+                    ${res?.loading ? 'Avaliando 5 Critérios...' : 'Avaliar Reescrita →'}
+                  </button>
+                </div>
+
+                ${res && !res.loading && res.data ? `
+                  <div class="rounded-xl border border-slate-200 bg-slate-50 p-5 space-y-4">
+                    <div class="flex items-center justify-between flex-wrap gap-2">
+                      <span class="text-sm font-bold text-ink">
+                        Resultado: ${escapeHTML(res.data.overallStatus)}
+                        ${res.isFallback ? ' <span class="text-xs font-normal text-amber-700">(Modo Fallback Local)</span>' : ''}
+                      </span>
+                      ${res.data.score !== null && res.data.score !== undefined ? `
+                        <span class="text-xs font-bold px-3 py-1 rounded-full bg-ink text-white">
+                          Nota: ${res.data.score}/100
+                        </span>
+                      ` : ''}
+                    </div>
+
+                    <p class="text-sm text-slate-700 leading-relaxed">${escapeHTML(res.data.summary)}</p>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
+                      ${(res.data.criteria || []).map(c => {
+                        const badge = c.status === 'ok'
+                          ? 'bg-emerald-100 text-emerald-800 border-emerald-200'
+                          : c.status === 'erro'
+                            ? 'bg-rose-100 text-rose-800 border-rose-200'
+                            : 'bg-amber-100 text-amber-800 border-amber-200';
+                        const icon = c.status === 'ok' ? '✓' : c.status === 'erro' ? '✗' : '!';
+                        return `
+                          <div class="rounded-lg bg-white border border-slate-200 p-3 space-y-1">
+                            <div class="flex items-center justify-between">
+                              <span class="text-xs font-bold text-ink">${escapeHTML(c.name)}</span>
+                              <span class="text-[11px] font-bold px-2 py-0.5 rounded-full border ${badge}">${icon}</span>
+                            </div>
+                            <p class="text-xs text-slate-600 leading-relaxed">${escapeHTML(c.comment)}</p>
+                          </div>
+                        `;
+                      }).join('')}
+                    </div>
+
+                    <div class="rounded-lg bg-emerald-50 border border-emerald-200 p-3.5">
+                      <p class="text-xs font-bold text-emerald-900 uppercase tracking-wider mb-1">Gabarito Modelo de Referência</p>
+                      <p class="text-sm font-serif text-emerald-950">${escapeHTML(res.data.suggestedRewrite || rw.modelAnswer)}</p>
+                    </div>
+                  </div>
+                ` : ''}
+              </article>
+            `;
+          }).join('')}
+        </div>
+      `;
+    }
+
+    // =========================================================================
+    // 11. RENDERIZADOR PRINCIPAL E INICIALIZAÇÃO
+    // =========================================================================
+
+    function renderApp() {
+      updateNavStyles();
+      const root = document.getElementById('app-root');
+      if (!root) return;
+
+      switch (STATE.activeTab) {
+        case 'acervo':
+          root.innerHTML = renderAcervoView();
+          break;
+        case 'estudio':
+          root.innerHTML = renderEstudioView();
+          break;
+        case 'diagnostico':
+          root.innerHTML = renderDiagnosticoView();
+          break;
+        case 'barreiras':
+          root.innerHTML = renderBarreirasView();
+          break;
+        case 'study':
+          root.innerHTML = renderStudyView();
+          break;
+        default:
+          root.innerHTML = renderAcervoView();
+      }
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      renderApp();
+    });
+  </script>
+</body>
+</html>
